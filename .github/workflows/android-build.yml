@@ -26,7 +26,10 @@ jobs:
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
       - name: Regenerate Gradle Wrapper
-        run: gradle wrapper --gradle-version 7.6.4
+        run: |
+          curl -L -o gradle-7.6.4-bin.zip https://services.gradle.org/distributions/gradle-7.6.4-bin.zip
+          unzip -q gradle-7.6.4-bin.zip
+          ./gradle-7.6.4/bin/gradle wrapper --gradle-version 7.6.4
 
       - name: Build APK
         run: ./gradlew assembleDebug --no-daemon --stacktrace
