@@ -24,10 +24,10 @@ jobs:
     
     - name: Build APK
       run: |
-        # Download Gradle
-        wget -q https://services.gradle.org/distributions/gradle-8.2-bin.zip
-        unzip -q gradle-8.2-bin.zip
-        export PATH=$PATH:$(pwd)/gradle-8.2/bin
+        # Use specific Gradle version (7.6.4 - compatible with Kotlin 1.9.20)
+        wget -q https://services.gradle.org/distributions/gradle-7.6.4-bin.zip
+        unzip -q gradle-7.6.4-bin.zip
+        export PATH=$PATH:$(pwd)/gradle-7.6.4/bin
         
         # Build
         gradle assembleDebug --no-daemon --stacktrace
