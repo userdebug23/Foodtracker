@@ -1,4 +1,4 @@
-name: Android Build
+name: Build Android APK
 
 on:
   push:
@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
     
     - name: Setup Java
       uses: actions/setup-java@v4
@@ -21,53 +22,31 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
     
-    - name: Setup Gradle
-      run: |
-        # Install Gradle
-        wget -O gradle.zip https://services.gradle.org/distributions/gradle-8.2-bin.zip
-        unzip gradle.zip
-        sudo mv gradle-8.2 /opt/gradle
-        sudo ln -s /opt/gradle/bin/gradle /usr/bin/gradle
-        
-        # Create wrapper
-        mkdir -p gradle/wrapper
-        cd gradle/wrapper
-        curl -O https://raw.githubusercontent.com/gradle/gradle/v8.2.0/gradle/wrapper/gradle-wrapper.jar
-        cat > gradle-wrapper.properties << 'EOF'
-        distributionBase=GRADLE_USER_HOME
-        distributionPath=wrapper/dists
-        distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-bin.zip
-        EOF
-        cd ../..
-        
-        # Make gradlew executable
-        chmod +x gradlew 2>/dev/null || echo "gradlew not found, using gradle directly"
-        
-        echo "Gradle setup complete"
-        gradle --version
-    
     - name: Build APK
       run: |
-        if [ -f gradlew ]; then
-          ./gradlew assembleDebug --no-daemon
-        else
-          gradle assembleDebug --no-daemon
-        fi
-    
-    - name: Find APK
-      id: find-apk
-      run: |
-        APK_PATH=$(find app/build/outputs -name "*.apk" | head -1)
-        echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
-        echo "Found APK at: $APK_PATH"
+        # Remove old gradle symlink if it exists
+        sudo rm -f /usr/bin/gradle
+        
+        # Download Gradle
+        wget -q https://services.gradle.org/distributions/gradle-8.2-bin.zip
+        unzip -q gradle-8.2-bin.zip
+        
+        # Use Gradle directly (no symlink needed)
+        export PATH=$PATH:$(pwd)/gradle-8.2/bin
+        echo "PATH=$PATH" >> $GITHUB_ENV
+        
+        # Create wrapper files for gradlew to work
+        mkdir -p gradle/wrapper
+        curl -L -o gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.2.0/gradle/wrapper/gradle-wrapper.jar
+        
+        # Build using gradle
+        gradle assembleDebug --no-daemon
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: FoodTracker-APK
-        path: ${{ steps.find-apk.outputs.apk_path }}
+        name: FoodTracker-App
+        path: |
+          app/build/outputs/apk/debug/*.apk
+          app/build/outputs/apk/*.apk
         if-no-files-found: warn
-    
-    - name: Build success
-      if: success()
-      run: echo "✅ Build successful! Download APK from Artifacts."
