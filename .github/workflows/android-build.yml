@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Android Build
 
 on:
   push:
@@ -24,29 +24,17 @@ jobs:
     
     - name: Build APK
       run: |
-        # Remove old gradle symlink if it exists
-        sudo rm -f /usr/bin/gradle
-        
         # Download Gradle
         wget -q https://services.gradle.org/distributions/gradle-8.2-bin.zip
         unzip -q gradle-8.2-bin.zip
-        
-        # Use Gradle directly (no symlink needed)
         export PATH=$PATH:$(pwd)/gradle-8.2/bin
-        echo "PATH=$PATH" >> $GITHUB_ENV
         
-        # Create wrapper files for gradlew to work
-        mkdir -p gradle/wrapper
-        curl -L -o gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.2.0/gradle/wrapper/gradle-wrapper.jar
-        
-        # Build using gradle
-        gradle assembleDebug --no-daemon
+        # Build
+        gradle assembleDebug --no-daemon --stacktrace
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: FoodTracker-App
-        path: |
-          app/build/outputs/apk/debug/*.apk
-          app/build/outputs/apk/*.apk
+        path: app/build/outputs/apk/debug/*.apk
         if-no-files-found: warn
