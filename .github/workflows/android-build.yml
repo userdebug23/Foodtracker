@@ -1,4 +1,4 @@
-name: Android Build
+name: Build Android APK
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
-        java-version: '17'
+        java-version: '11'
         distribution: 'temurin'
     
     - name: Setup Android SDK
@@ -24,7 +24,7 @@ jobs:
     
     - name: Build APK
       run: |
-        # Use specific Gradle version (7.6.4 - compatible with Kotlin 1.9.20)
+        # Use compatible Gradle version
         wget -q https://services.gradle.org/distributions/gradle-7.6.4-bin.zip
         unzip -q gradle-7.6.4-bin.zip
         export PATH=$PATH:$(pwd)/gradle-7.6.4/bin
