@@ -18,8 +18,8 @@
     <string name="add_payment">Add Payment</string>
     <string name="edit_entry">Edit Entry</string>
     <string name="delete_entry">Delete Entry</string>
-    <string name="export">Export</string>
-    <string name="import">Import</string>
+    <string name="export_data">Export</string>
+    <string name="import_data">Import</string>
     <string name="search">Search</string>
     <string name="no_data">No Data Available</string>
     <string name="loading">Loading…</string>
@@ -31,4 +31,25 @@
     <string name="save">Save</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
+    <string name="view">View</string>
+    <string name="all_meals_completed">All meals completed</string>
+    <string name="partial_meals">Partial meals</string>
+    <string name="no_meals">No meals</string>
+    <string name="payment_pending">Payment pending</string>
+    <string name="payment_complete">Payment complete</string>
+    <string name="monthly_charge">Monthly Charge</string>
+    <string name="theme">Theme</string>
+    <string name="notifications">Notifications</string>
+    <string name="backup_database">Backup Database</string>
+    <string name="restore_database">Restore Database</string>
+    <string name="reset_database">Reset Database</string>
+    <string name="export_excel">Export as Excel</string>
+    <string name="export_pdf">Export as PDF</string>
+    <string name="export_csv">Export as CSV</string>
+    <string name="version">Version</string>
+    <string name="rate_app">Rate App</string>
+    <string name="today">Today</string>
+    <string name="monthly_summary">Monthly Summary</string>
+    <string name="recent_entries">Recent Entries</string>
+    <string name="no_entries_found">No entries found</string>
 </resources>
