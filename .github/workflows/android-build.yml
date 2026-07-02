@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build APK
 
 on:
   push:
@@ -10,8 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
     
     - name: Setup Java
       uses: actions/setup-java@v4
@@ -19,22 +18,21 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
     
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-    
-    - name: Build APK
+    - name: Build
       run: |
-        # Use compatible Gradle version
+        # Setup Gradle
         wget -q https://services.gradle.org/distributions/gradle-7.6.4-bin.zip
         unzip -q gradle-7.6.4-bin.zip
         export PATH=$PATH:$(pwd)/gradle-7.6.4/bin
         
+        # Create local.properties
+        echo "sdk.dir=/usr/local/lib/android/sdk" > local.properties
+        
         # Build
         gradle assembleDebug --no-daemon --stacktrace
     
-    - name: Upload APK
+    - name: Upload
       uses: actions/upload-artifact@v4
       with:
-        name: FoodTracker-App
+        name: FoodTracker
         path: app/build/outputs/apk/debug/*.apk
-        if-no-files-found: warn
