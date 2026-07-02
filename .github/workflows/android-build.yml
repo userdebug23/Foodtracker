@@ -25,7 +25,12 @@ jobs:
       - name: Create local.properties
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
-      - name: Build APK
+ 
+- name: Regenerate Gradle Wrapper
+        run: gradle wrapper --gradle-version 7.6.4
+
+      - name: Run ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
