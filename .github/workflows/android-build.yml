@@ -24,30 +24,61 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
     
-    - name: Grant execute permission for gradlew
+    - name: Check files
       run: |
-        chmod +x gradlew
-        ls -la gradlew
+        echo "=== Root directory ==="
+        ls -la
+        echo "=== Gradle wrapper directory ==="
+        ls -la gradle/wrapper/ || echo "Wrapper directory not found"
+        echo "=== Gradlew permissions ==="
+        ls -la gradlew || echo "gradlew not found"
+    
+    - name: Fix gradlew permissions
+      run: |
+        if [ -f gradlew ]; then
+          chmod +x gradlew
+          echo "gradlew permissions fixed"
+        else
+          echo "ERROR: gradlew file not found!"
+          exit 1
+        fi
     
     - name: Build Debug APK
-      run: ./gradlew assembleDebug --stacktrace
+      run: |
+        if [ -f gradlew ]; then
+          ./gradlew assembleDebug --stacktrace
+        else
+          echo "ERROR: gradlew not found. Cannot build."
+          exit 1
+        fi
     
     - name: Build Release APK
-      run: ./gradlew assembleRelease --stacktrace
+      run: |
+        if [ -f gradlew ]; then
+          ./gradlew assembleRelease --stacktrace
+        else
+          echo "ERROR: gradlew not found. Cannot build."
+          exit 1
+        fi
     
     - name: List output files
       run: |
-        ls -la app/build/outputs/apk/debug/
-        ls -la app/build/outputs/apk/release/
+        echo "=== Checking build outputs ==="
+        ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "Debug APK not found"
+        ls -la app/build/outputs/apk/release/ 2>/dev/null || echo "Release APK not found"
     
     - name: Upload Debug APK
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: FoodTracker-Debug-APK
         path: app/build/outputs/apk/debug/app-debug.apk
+        if-no-files-found: error
     
     - name: Upload Release APK
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: FoodTracker-Release-APK
         path: app/build/outputs/apk/release/app-release.apk
+        if-no-files-found: error
