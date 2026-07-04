@@ -119,10 +119,7 @@ fun EditMealDialog(
                     Spacer(modifier = Modifier.height(20.dp))
                     
                     val mealCount = NumberUtils.calculateMealCount(breakfast, lunch, dinner)
-                    // Calculate expense using the meal rate
-                   // Replace the dailyExpense calculation with:
-val dailyExpense = NumberUtils.calculateDailyExpenseSync(context, breakfast, lunch, dinner)
-                    }
+                    val dailyExpense = NumberUtils.calculateDailyExpenseSync(context, breakfast, lunch, dinner)
                     
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -205,16 +202,6 @@ val dailyExpense = NumberUtils.calculateDailyExpenseSync(context, breakfast, lun
             }
         }
     }
-}
-
-// Helper function to run blocking coroutine
-@Composable
-fun runBlocking(block: suspend () -> Double): Double {
-    var result by remember { mutableStateOf(0.0) }
-    LaunchedEffect(Unit) {
-        result = block()
-    }
-    return result
 }
 
 @Composable
