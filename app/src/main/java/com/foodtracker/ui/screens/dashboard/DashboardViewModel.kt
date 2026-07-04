@@ -41,44 +41,53 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
                 Log.d("DashboardVM", "=== LOADING DASHBOARD ===")
                 Log.d("DashboardVM", "Selected Date: $selectedDate")
                 
-                // ✅ Get entry for selected date
+                // Get entry for selected date
                 val selectedEntry = foodRepository.getEntry(selectedDate)
                 Log.d("DashboardVM", "Selected Entry: $selectedEntry")
                 
-                // ✅ Get current month summary
+                // Get current month summary
                 val summary = foodRepository.getMonthlySummary(currentMonth)
                 Log.d("DashboardVM", "Monthly Summary - Total Expense: ${summary.totalExpense}")
                 
-                // ✅ Get recent entries
+                // Get recent entries
                 val startDate = selectedDate.minusDays(7)
                 val endDate = selectedDate.plusDays(1)
                 val recentEntries = foodRepository.getEntriesBetween(startDate, endDate)
                 
-                // ✅ FIX: Get ALL entries from database for total expense
-                // Using a very early date to get all entries
+                // Get ALL entries for total expense
                 val allEntries = foodRepository.getEntriesBetween(
                     LocalDate.of(2000, 1, 1),
                     LocalDate.now().plusDays(1)
                 )
                 Log.d("DashboardVM", "All Entries Count: ${allEntries.size}")
                 
-                // ✅ Calculate total expense correctly
+                // Calculate total expense
                 var totalExpenseAllTime = 0.0
                 for (entry in allEntries) {
                     totalExpenseAllTime += entry.dailyExpense
-                    Log.d("DashboardVM", "Entry: ${entry.date}, Expense: ${entry.dailyExpense}")
                 }
                 Log.d("DashboardVM", "Total Expense All Time: $totalExpenseAllTime")
                 
-                // ✅ Get total paid correctly
+                // Get total paid
                 val totalPaid = paymentRepository.getTotalCompletedPayments()
                 Log.d("DashboardVM", "Total Paid: $totalPaid")
                 
-                // ✅ Balance = Total Paid - Total Expense
+                // ✅ Get last payment
+                val allPayments = paymentRepository.getAllPayments()
+                val lastPayment = allPayments.firstOrNull()
+                val lastPaymentDate = if (lastPayment != null) {
+                    lastPayment.paymentDate.toString()
+                } else {
+                    ""
+                }
+                val lastPaymentAmount = lastPayment?.amount ?: 0.0
+                Log.d("DashboardVM", "Last Payment: $lastPaymentDate - $lastPaymentAmount")
+                
+                // Balance = Total Paid - Total Expense
                 val balance = totalPaid - totalExpenseAllTime
                 Log.d("DashboardVM", "Balance: $balance")
                 
-                // ✅ Remaining Days = Balance / Daily Rate
+                // Remaining Days = Balance / Daily Rate
                 val remainingDays = if (dailyRate > 0 && balance > 0) {
                     (balance / dailyRate).toInt()
                 } else {
@@ -89,13 +98,11 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
                 
                 _state.update {
                     it.copy(
-                        // Selected date data
                         todayBreakfast = selectedEntry?.breakfast ?: false,
                         todayLunch = selectedEntry?.lunch ?: false,
                         todayDinner = selectedEntry?.dinner ?: false,
                         todayMeals = selectedEntry?.mealCount ?: 0,
                         todayExpense = selectedEntry?.dailyExpense ?: 0.0,
-                        // Monthly data
                         totalMeals = summary.totalMeals,
                         breakfastCount = summary.totalBreakfast,
                         lunchCount = summary.totalLunch,
@@ -103,12 +110,12 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
                         totalExpense = summary.totalExpense,
                         averageDailyExpense = summary.averageDailyExpense,
                         presentDays = summary.presentDays,
-                        // Balance data
                         totalPaid = totalPaid,
                         balance = balance,
                         remainingDays = remainingDays,
                         dailyRate = dailyRate,
-                        // Recent entries
+                        lastPaymentDate = lastPaymentDate,
+                        lastPaymentAmount = lastPaymentAmount,
                         recentEntries = recentEntries.sortedByDescending { it.date }.take(7)
                     )
                 }
@@ -148,5 +155,7 @@ data class DashboardState(
     val balance: Double = 0.0,
     val remainingDays: Int = 0,
     val dailyRate: Double = 160.0,
+    val lastPaymentDate: String = "",
+    val lastPaymentAmount: Double = 0.0,
     val recentEntries: List<FoodEntry> = emptyList()
 )
