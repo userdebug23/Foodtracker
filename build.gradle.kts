@@ -10,8 +10,6 @@ buildscript {
     }
 }
 
-// REMOVED: allprojects { repositories { ... } } - This was causing the conflict
-
 tasks.register("clean", Delete::class) {
     delete(rootProject.buildDir)
 }
