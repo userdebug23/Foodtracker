@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
+import com.foodtracker.utils.ThemeManager  // ✅ ADD THIS IMPORT
 
 @Composable
 fun SettingsScreen() {
@@ -24,20 +25,13 @@ fun SettingsScreen() {
     val prefs = context.getSharedPreferences("food_tracker_settings", Context.MODE_PRIVATE)
     
     var dailyRate by remember { mutableStateOf(prefs.getFloat("daily_rate", 160f).toDouble()) }
-    var isDarkTheme by remember { mutableStateOf(prefs.getBoolean("dark_theme", false)) }
+    var isDarkTheme by remember { mutableStateOf(ThemeManager.isDarkTheme(context)) }  // ✅ Use ThemeManager
     var showDialog by remember { mutableStateOf(false) }
     
     fun saveDailyRate(rate: Double) {
         prefs.edit { putFloat("daily_rate", rate.toFloat()) }
         dailyRate = rate
         Toast.makeText(context, "Daily rate updated to ₹${String.format("%.2f", rate)}", Toast.LENGTH_SHORT).show()
-    }
-    
-    fun toggleTheme() {
-        val newTheme = !isDarkTheme
-        prefs.edit { putBoolean("dark_theme", newTheme) }
-        isDarkTheme = newTheme
-        Toast.makeText(context, if (newTheme) "Dark mode enabled" else "Light mode enabled", Toast.LENGTH_SHORT).show()
     }
     
     val perMealRate = dailyRate / 3
@@ -116,6 +110,7 @@ fun SettingsScreen() {
             }
         }
         
+        // ✅ FIXED: Appearance Section - Dark Mode Toggle
         item {
             SettingsSection(title = "🎨 Appearance") {
                 SettingsSwitch(
@@ -123,7 +118,22 @@ fun SettingsScreen() {
                     title = "Dark Mode",
                     subtitle = if (isDarkTheme) "Currently in Dark mode" else "Currently in Light mode",
                     checked = isDarkTheme,
-                    onCheckedChange = { toggleTheme() }
+                    onCheckedChange = { 
+                        // Toggle theme
+                        val newTheme = !isDarkTheme
+                        ThemeManager.setDarkTheme(context, newTheme)
+                        isDarkTheme = newTheme
+                        
+                        // Show toast
+                        Toast.makeText(
+                            context, 
+                            if (newTheme) "🌙 Dark mode enabled" else "☀️ Light mode enabled",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        
+                        // Recreate activity to apply theme
+                        (context as? androidx.activity.ComponentActivity)?.recreate()
+                    }
                 )
             }
         }
