@@ -1,24 +1,38 @@
 package com.foodtracker.ui.screens.dashboard
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.factory.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.foodtracker.utils.DateUtils
 import com.foodtracker.utils.NumberUtils
 
 @Composable
-fun DashboardScreen(
-    viewModel: DashboardViewModel = viewModel()
-) {
+fun DashboardScreen() {
+    val context = LocalContext.current
+    
+    val viewModel = viewModel<DashboardViewModel>(
+        factory = viewModelFactory {
+            initializer {
+                DashboardViewModel(context)
+            }
+        }
+    )
+    
     val state by viewModel.state.collectAsState()
     
     LazyColumn(
@@ -178,8 +192,8 @@ fun DashboardScreen(
             }
         }
         
-        item {
-            if (state.recentEntries.isNotEmpty()) {
+        if (state.recentEntries.isNotEmpty()) {
+            item {
                 Text(
                     text = "Recent Entries",
                     fontSize = 18.sp,
@@ -187,42 +201,41 @@ fun DashboardScreen(
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
             }
-        }
-        
-        items(state.recentEntries.size) { index ->
-            val entry = state.recentEntries[index]
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = DateUtils.formatDate(entry.date),
-                            fontWeight = FontWeight.Medium
-                        )
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            MealDot(entry.breakfast, "B")
-                            MealDot(entry.lunch, "L")
-                            MealDot(entry.dinner, "D")
-                        }
-                    }
-                    Text(
-                        text = NumberUtils.formatCurrency(entry.dailyExpense),
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+            
+            items(state.recentEntries) { entry ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
                     )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = DateUtils.formatDate(entry.date),
+                                fontWeight = FontWeight.Medium
+                            )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                MealDot(entry.breakfast, "B")
+                                MealDot(entry.lunch, "L")
+                                MealDot(entry.dinner, "D")
+                            }
+                        }
+                        Text(
+                            text = NumberUtils.formatCurrency(entry.dailyExpense),
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
         }
@@ -238,36 +251,31 @@ fun MealButton(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Card(
+        Box(
             modifier = Modifier
-                .size(60.dp)
+                .size(56.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .clickable { onToggle() },
-            colors = CardDefaults.cardColors(
-                containerColor = if (isChecked) 
-                    MaterialTheme.colorScheme.primary 
-                else 
-                    MaterialTheme.colorScheme.surfaceVariant
-            )
+                .clickable { onToggle() }
+                .background(
+                    if (isChecked) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.surfaceVariant
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = if (isChecked) "✓" else "✗",
-                    fontSize = 24.sp,
-                    color = if (isChecked) 
-                        MaterialTheme.colorScheme.onPrimary 
-                    else 
-                        MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)
-                )
-            }
+            Text(
+                text = if (isChecked) "✓" else "✗",
+                fontSize = 24.sp,
+                color = if (isChecked) 
+                    MaterialTheme.colorScheme.onPrimary 
+                else 
+                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)
+            )
         }
         Text(
             text = label,
             fontSize = 11.sp,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+            modifier = Modifier.padding(top = 4.dp)
         )
     }
 }
