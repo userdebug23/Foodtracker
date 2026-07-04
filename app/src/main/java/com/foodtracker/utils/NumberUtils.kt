@@ -11,6 +11,7 @@ import java.util.Locale
 
 private val Context.dataStore by preferencesDataStore(name = "food_settings")
 private val DAILY_AMOUNT_KEY = doublePreferencesKey("daily_amount")
+private val DAILY_RATE_KEY = doublePreferencesKey("daily_rate")
 
 object NumberUtils {
     private val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault())
@@ -19,7 +20,16 @@ object NumberUtils {
         return currencyFormat.format(amount)
     }
     
-    // Get daily amount from DataStore (synchronous version for non-suspend contexts)
+    // Get daily amount (Daily Budget)
+    suspend fun getDailyAmount(context: Context): Double {
+        return try {
+            val preferences = context.dataStore.data.first()
+            preferences[DAILY_AMOUNT_KEY] ?: 160.0
+        } catch (e: Exception) {
+            160.0
+        }
+    }
+    
     fun getDailyAmountSync(context: Context): Double {
         return try {
             runBlocking {
@@ -31,29 +41,39 @@ object NumberUtils {
         }
     }
     
-    // Get daily amount (suspend version)
-    suspend fun getDailyAmount(context: Context): Double {
+    // Get daily rate (cost per full day)
+    suspend fun getDailyRate(context: Context): Double {
         return try {
             val preferences = context.dataStore.data.first()
-            preferences[DAILY_AMOUNT_KEY] ?: 160.0
+            preferences[DAILY_RATE_KEY] ?: 160.0
         } catch (e: Exception) {
             160.0
         }
     }
     
-    // Get per meal rate (suspend version)
+    fun getDailyRateSync(context: Context): Double {
+        return try {
+            runBlocking {
+                val preferences = context.dataStore.data.first()
+                preferences[DAILY_RATE_KEY] ?: 160.0
+            }
+        } catch (e: Exception) {
+            160.0
+        }
+    }
+    
+    // Get per meal rate
     suspend fun getMealRate(context: Context): Double {
-        val dailyAmount = getDailyAmount(context)
-        return dailyAmount / 3
+        val dailyRate = getDailyRate(context)
+        return dailyRate / 3
     }
     
-    // Get per meal rate (synchronous version)
     fun getMealRateSync(context: Context): Double {
-        val dailyAmount = getDailyAmountSync(context)
-        return dailyAmount / 3
+        val dailyRate = getDailyRateSync(context)
+        return dailyRate / 3
     }
     
-    // Calculate daily expense based on meals (suspend version)
+    // Calculate daily expense based on meals
     suspend fun calculateDailyExpense(context: Context, breakfast: Boolean, lunch: Boolean, dinner: Boolean): Double {
         val mealRate = getMealRate(context)
         var count = 0
@@ -63,7 +83,6 @@ object NumberUtils {
         return count * mealRate
     }
     
-    // Calculate daily expense (synchronous version)
     fun calculateDailyExpenseSync(context: Context, breakfast: Boolean, lunch: Boolean, dinner: Boolean): Double {
         val mealRate = getMealRateSync(context)
         var count = 0
@@ -79,5 +98,10 @@ object NumberUtils {
         if (lunch) count++
         if (dinner) count++
         return count
+    }
+    
+    // Calculate remaining days based on balance and daily rate
+    fun calculateRemainingDays(balance: Double, dailyRate: Double): Int {
+        return if (dailyRate > 0) (balance / dailyRate).toInt() else 0
     }
 }
