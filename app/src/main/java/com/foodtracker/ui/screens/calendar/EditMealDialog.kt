@@ -118,9 +118,12 @@ fun EditMealDialog(
                     
                     Spacer(modifier = Modifier.height(20.dp))
                     
-                    / Calculate expense using daily rate
-val mealRate = NumberUtils.getMealRate(context)
-val dailyExpense = mealCount * mealRate
+                    // Calculate meal count
+                    val mealCount = NumberUtils.calculateMealCount(breakfast, lunch, dinner)
+                    
+                    // Calculate expense using daily rate
+                    val mealRate = NumberUtils.getMealRate(context)
+                    val dailyExpense = mealCount * mealRate
                     
                     Card(
                         modifier = Modifier.fillMaxWidth(),
