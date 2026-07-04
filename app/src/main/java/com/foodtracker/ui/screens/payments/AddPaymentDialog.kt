@@ -1,11 +1,15 @@
 package com.foodtracker.ui.screens.payments
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -70,7 +74,6 @@ fun AddPaymentDialog(
                     },
                     label = { Text("Amount (₹)") },
                     placeholder = { Text("Enter amount") },
-                    leadingIcon = { Text("₹", fontSize = 20.sp) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -81,7 +84,8 @@ fun AddPaymentDialog(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showDatePicker = true },
+                        .clickable { showDatePicker = true }
+                        .height(56.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -90,7 +94,7 @@ fun AddPaymentDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(14.dp),
+                            .padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -108,14 +112,14 @@ fun AddPaymentDialog(
                         }
                         Text(
                             text = "📅",
-                            fontSize = 24.sp
+                            fontSize = 20.sp
                         )
                     }
                 }
                 
                 Spacer(modifier = Modifier.height(12.dp))
                 
-                // Payment Method Dropdown
+                // Payment Method
                 var expanded by remember { mutableStateOf(false) }
                 
                 OutlinedTextField(
@@ -123,18 +127,20 @@ fun AddPaymentDialog(
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Payment Method") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(),
-                    singleLine = true,
-                    onClick = { expanded = true }
+                    trailingIcon = { 
+                        Text(
+                            if (expanded) "▲" else "▼",
+                            fontSize = 16.sp,
+                            modifier = Modifier.clickable { expanded = !expanded }
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
                 
                 DropdownMenu(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    modifier = Modifier.fillMaxWidth()
+                    onDismissRequest = { expanded = false }
                 ) {
                     paymentMethods.forEach { method ->
                         DropdownMenuItem(
@@ -161,7 +167,7 @@ fun AddPaymentDialog(
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                // Show status indicator
+                // Show status indicator for scheduled payments
                 val isScheduled = selectedDate.isAfter(LocalDate.now())
                 if (isScheduled) {
                     Row(
@@ -178,7 +184,7 @@ fun AddPaymentDialog(
                         Text("⏳", fontSize = 16.sp)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "This payment will be scheduled for ${selectedDate.format(dateFormatter)}",
+                            text = "Scheduled for ${selectedDate.format(dateFormatter)}",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -207,7 +213,7 @@ fun AddPaymentDialog(
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                             )
                             Text(
-                                text = "₹${amount}",
+                                text = "₹$amount",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -247,9 +253,9 @@ fun AddPaymentDialog(
         }
     }
     
-    // Date Picker Dialog
+    // Simple Date Picker Dialog
     if (showDatePicker) {
-        DatePickerDialog(
+        SimpleDatePickerDialog(
             onDismiss = { showDatePicker = false },
             onDateSelected = { date ->
                 selectedDate = date
@@ -261,7 +267,7 @@ fun AddPaymentDialog(
 }
 
 @Composable
-fun DatePickerDialog(
+fun SimpleDatePickerDialog(
     onDismiss: () -> Unit,
     onDateSelected: (LocalDate) -> Unit,
     initialDate: LocalDate
@@ -289,7 +295,7 @@ fun DatePickerDialog(
                             month--
                         }
                     }) {
-                        Text("◀", fontSize = 20.sp)
+                        Text("◀")
                     }
                     Text(
                         text = "${getMonthName(month)} $year",
@@ -304,25 +310,21 @@ fun DatePickerDialog(
                             month++
                         }
                     }) {
-                        Text("▶", fontSize = 20.sp)
+                        Text("▶")
                     }
                 }
                 
                 Spacer(modifier = Modifier.height(8.dp))
-                
-                // Day grid (simplified)
-                val daysInMonth = getDaysInMonth(month, year)
-                val firstDayOfWeek = getFirstDayOfWeek(month, year)
                 
                 // Day headers
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    listOf("S", "M", "T", "W", "T", "F", "S").forEach { dayLabel ->
+                    listOf("Su", "Mo", "Tu", "We", "Th", "Fr", "Sa").forEach { dayLabel ->
                         Text(
                             text = dayLabel,
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                             modifier = Modifier.weight(1f),
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -333,6 +335,9 @@ fun DatePickerDialog(
                 Spacer(modifier = Modifier.height(4.dp))
                 
                 // Days grid
+                val daysInMonth = getDaysInMonth(month, year)
+                val firstDayOfWeek = getFirstDayOfWeek(month, year)
+                
                 var dayCounter = 1
                 var weekCounter = 0
                 
@@ -352,6 +357,10 @@ fun DatePickerDialog(
                             
                             if (isDayVisible && currentDay <= daysInMonth) {
                                 val isSelected = currentDay == day && month == initialDate.monthValue && year == initialDate.year
+                                val isToday = currentDay == LocalDate.now().dayOfMonth && 
+                                             month == LocalDate.now().monthValue && 
+                                             year == LocalDate.now().year
+                                
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
@@ -359,6 +368,7 @@ fun DatePickerDialog(
                                         .padding(2.dp)
                                         .background(
                                             if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                                            else if (isToday) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                                             else Color.Transparent,
                                             RoundedCornerShape(4.dp)
                                         )
@@ -369,7 +379,7 @@ fun DatePickerDialog(
                                     contentAlignment = androidx.compose.ui.Alignment.Center
                                 ) {
                                     Text(
-                                        text = if (currentDay > 0) currentDay.toString() else "",
+                                        text = currentDay.toString(),
                                         fontSize = 14.sp,
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                         color = if (currentDay > 0 && LocalDate.of(year, month, currentDay).isBefore(LocalDate.now())) 
@@ -393,11 +403,7 @@ fun DatePickerDialog(
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = {
-                    onDateSelected(LocalDate.of(year, month, day))
-                }
-            ) {
+            TextButton(onClick = { onDateSelected(LocalDate.of(year, month, day)) }) {
                 Text("OK")
             }
         },
