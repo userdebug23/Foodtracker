@@ -30,12 +30,37 @@ fun CalendarScreen() {
     
     val state by viewModel.state.collectAsState()
     
+    // Swipe to refresh state
+    var isRefreshing by remember { mutableStateOf(false) }
+    
+    // Refresh handler
+    suspend fun refresh() {
+        viewModel.refresh()
+    }
+    
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // Swipe to refresh indicator
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (isRefreshing) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(32.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+        
         item {
             // Header
             Row(
@@ -172,7 +197,6 @@ fun CalendarScreen() {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        // FIXED: Using partialDays instead of absentDays for Partial
                         LegendItemWithCount(
                             label = "Present",
                             count = state.presentDays.toString(),
@@ -180,7 +204,7 @@ fun CalendarScreen() {
                         )
                         LegendItemWithCount(
                             label = "Partial",
-                            count = state.partialDays.toString(),  // ✅ FIXED
+                            count = state.partialDays.toString(),
                             color = Color(0xFFFFC107)
                         )
                         LegendItemWithCount(
