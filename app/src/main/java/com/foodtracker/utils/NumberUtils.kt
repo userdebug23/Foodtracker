@@ -11,18 +11,18 @@ object NumberUtils {
         return currencyFormat.format(amount)
     }
     
-    // Get meal rate from SharedPreferences
-    fun getMealRate(context: Context): Double {
-        val prefs = context.getSharedPreferences("food_tracker_settings", Context.MODE_PRIVATE)
-        return prefs.getFloat("meal_rate", 50f).toDouble()
-    }
-    
-    // Get daily rate
+    // Get daily rate from SharedPreferences
     fun getDailyRate(context: Context): Double {
-        return getMealRate(context) * 3
+        val prefs = context.getSharedPreferences("food_tracker_settings", Context.MODE_PRIVATE)
+        return prefs.getFloat("daily_rate", 160f).toDouble()
     }
     
-    // Calculate daily expense
+    // Get per meal rate = daily rate / 3
+    fun getMealRate(context: Context): Double {
+        return getDailyRate(context) / 3
+    }
+    
+    // Calculate daily expense based on meals
     fun calculateDailyExpense(context: Context, breakfast: Boolean, lunch: Boolean, dinner: Boolean): Double {
         val mealRate = getMealRate(context)
         var count = 0
