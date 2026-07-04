@@ -1,5 +1,6 @@
 package com.foodtracker.ui.screens.dashboard
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,22 +16,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.factory.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.foodtracker.utils.DateUtils
 import com.foodtracker.utils.NumberUtils
 
 @Composable
 fun DashboardScreen() {
     val context = LocalContext.current
-    
-    val viewModel = viewModel<DashboardViewModel>(
-        factory = viewModelFactory {
-            initializer {
-                DashboardViewModel(context)
-            }
-        }
+    val viewModel: DashboardViewModel = viewModel(
+        factory = DashboardViewModel.provideFactory(context)
     )
     
     val state by viewModel.state.collectAsState()
