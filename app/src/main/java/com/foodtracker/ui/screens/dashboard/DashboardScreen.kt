@@ -3,7 +3,6 @@ package com.foodtracker.ui.screens.dashboard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -46,7 +45,6 @@ fun DashboardScreen(
         }
         
         item {
-            // Today's Summary
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -58,7 +56,7 @@ fun DashboardScreen(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = "Today",
+                        text = "Today's Meals",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -68,9 +66,9 @@ fun DashboardScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        MealStatusItem("Breakfast", state.todayBreakfast)
-                        MealStatusItem("Lunch", state.todayLunch)
-                        MealStatusItem("Dinner", state.todayDinner)
+                        MealStatus("Breakfast", state.todayBreakfast)
+                        MealStatus("Lunch", state.todayLunch)
+                        MealStatus("Dinner", state.todayDinner)
                     }
                     
                     Spacer(modifier = Modifier.height(8.dp))
@@ -93,7 +91,6 @@ fun DashboardScreen(
         }
         
         item {
-            // Monthly Summary
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -175,46 +172,8 @@ fun DashboardScreen(
             )
         }
         
-        items(state.recentEntries) { entry ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = DateUtils.formatDate(entry.date),
-                            fontWeight = FontWeight.Medium
-                        )
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            MealDotItem(entry.breakfast, "B")
-                            MealDotItem(entry.lunch, "L")
-                            MealDotItem(entry.dinner, "D")
-                        }
-                    }
-                    Text(
-                        text = NumberUtils.formatCurrency(entry.dailyExpense),
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
-        
-        item {
-            if (state.recentEntries.isEmpty()) {
+        if (state.recentEntries.isEmpty()) {
+            item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -227,12 +186,50 @@ fun DashboardScreen(
                     )
                 }
             }
+        } else {
+            items(state.recentEntries.size) { index ->
+                val entry = state.recentEntries[index]
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = DateUtils.formatDate(entry.date),
+                                fontWeight = FontWeight.Medium
+                            )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                MealDot(entry.breakfast, "B")
+                                MealDot(entry.lunch, "L")
+                                MealDot(entry.dinner, "D")
+                            }
+                        }
+                        Text(
+                            text = NumberUtils.formatCurrency(entry.dailyExpense),
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-fun MealStatusItem(label: String, isPresent: Boolean) {
+fun MealStatus(label: String, isPresent: Boolean) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -261,7 +258,7 @@ fun MealStatusItem(label: String, isPresent: Boolean) {
 }
 
 @Composable
-fun MealDotItem(isPresent: Boolean, label: String) {
+fun MealDot(isPresent: Boolean, label: String) {
     Box(
         modifier = Modifier
             .size(20.dp)
