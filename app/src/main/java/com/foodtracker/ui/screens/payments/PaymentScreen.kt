@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,8 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.foodtracker.data.entities.PaymentEntity
 import com.foodtracker.utils.NumberUtils
-import com.foodtracker.utils.DateUtils
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -31,6 +30,8 @@ fun PaymentScreen() {
     
     val state by viewModel.state.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var selectedPaymentId by remember { mutableStateOf<Long?>(null) }
     
     val dateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
     
@@ -156,18 +157,49 @@ fun PaymentScreen() {
         
         if (state.payments.isEmpty()) {
             item {
-                EmptyPaymentCard()
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("💳", fontSize = 48.sp)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "No payments yet",
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                            )
+                            Text(
+                                text = "Tap the + button to add your first payment",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
+                            )
+                        }
+                    }
+                }
             }
         } else {
             items(state.payments) { payment ->
                 PaymentItem(
                     payment = payment,
-                    onComplete = { 
+                    onComplete = {
                         if (payment.status == "Pending") {
                             viewModel.markPaymentAsCompleted(payment.id)
                         }
                     },
-                    onDelete = { viewModel.deletePayment(payment.id) }
+                    onDelete = { 
+                        selectedPaymentId = payment.id
+                        showDeleteDialog = true
+                    }
                 )
             }
         }
@@ -184,38 +216,35 @@ fun PaymentScreen() {
             }
         )
     }
-}
-
-@Composable
-fun EmptyPaymentCard() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(32.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("💳", fontSize = 48.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "No payments yet",
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                )
-                Text(
-                    text = "Tap the + button to add your first payment",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
-                )
+    
+    if (showDeleteDialog && selectedPaymentId != null) {
+        AlertDialog(
+            onDismissRequest = { 
+                showDeleteDialog = false
+                selectedPaymentId = null
+            },
+            title = { Text("Delete Payment") },
+            text = { Text("Are you sure you want to delete this payment?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        selectedPaymentId?.let { viewModel.deletePayment(it) }
+                        showDeleteDialog = false
+                        selectedPaymentId = null
+                    }
+                ) {
+                    Text("Delete", color = Color(0xFFF44336))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { 
+                    showDeleteDialog = false
+                    selectedPaymentId = null
+                }) {
+                    Text("Cancel")
+                }
             }
-        }
+        )
     }
 }
 
@@ -358,13 +387,7 @@ fun PaymentItem(
     if (showOptions) {
         AlertDialog(
             onDismissRequest = { showOptions = false },
-            title = { 
-                Text(
-                    "Payment Options",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            },
+            title = { Text("Payment Options") },
             text = {
                 Column {
                     Text("Amount: ${NumberUtils.formatCurrency(payment.amount)}")
@@ -373,6 +396,8 @@ fun PaymentItem(
                     if (payment.remarks.isNotEmpty()) {
                         Text("Note: ${payment.remarks}")
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Status: $statusText", color = statusColor)
                 }
             },
             confirmButton = {
@@ -383,7 +408,7 @@ fun PaymentItem(
                             showOptions = false
                         }
                     ) {
-                        Text("✅ Mark as Completed", color = Color(0xFF4CAF50))
+                        Text("✅ Mark Completed", color = Color(0xFF4CAF50))
                     }
                 }
             },
