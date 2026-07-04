@@ -41,6 +41,12 @@ class MainActivity : ComponentActivity() {
                             fontSize = 18.sp,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                         )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Version 1.0.0",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
+                        )
                     }
                 }
             }
