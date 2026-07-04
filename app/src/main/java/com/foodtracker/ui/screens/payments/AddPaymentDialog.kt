@@ -22,7 +22,7 @@ fun AddPaymentDialog(
     onDismiss: () -> Unit,
     onAddPayment: (Double, String, String, LocalDate) -> Unit
 ) {
-    var amount by remember { mutableStateOf("") }
+    var amountText by remember { mutableStateOf("") }
     var paymentMethod by remember { mutableStateOf("Cash") }
     var remarks by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
@@ -30,6 +30,9 @@ fun AddPaymentDialog(
     
     val paymentMethods = listOf("Cash", "UPI", "Bank Transfer", "Card", "Other")
     val dateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
+    
+    // Get the amount as Double
+    val amountValue = amountText.toDoubleOrNull()
     
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -64,17 +67,17 @@ fun AddPaymentDialog(
                 
                 Spacer(modifier = Modifier.height(20.dp))
                 
-                // Amount Input - SIMPLIFIED
+                // Amount Input
                 OutlinedTextField(
-                    value = amount,
+                    value = amountText,
                     onValueChange = { 
-                        // Allow only numbers and decimal point
+                        // Allow only numbers and decimal
                         if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) {
-                            amount = it
+                            amountText = it
                         }
                     },
                     label = { Text("Amount (₹)") },
-                    placeholder = { Text("Enter amount") },
+                    placeholder = { Text("Enter amount (e.g., 500)") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
@@ -84,7 +87,7 @@ fun AddPaymentDialog(
                 
                 Spacer(modifier = Modifier.height(12.dp))
                 
-                // Payment Date - Click to select
+                // Payment Date
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -114,16 +117,13 @@ fun AddPaymentDialog(
                                 fontWeight = FontWeight.Medium
                             )
                         }
-                        Text(
-                            text = "📅",
-                            fontSize = 20.sp
-                        )
+                        Text("📅", fontSize = 20.sp)
                     }
                 }
                 
                 Spacer(modifier = Modifier.height(12.dp))
                 
-                // Payment Method Dropdown
+                // Payment Method
                 var expanded by remember { mutableStateOf(false) }
                 
                 OutlinedTextField(
@@ -139,11 +139,7 @@ fun AddPaymentDialog(
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)
-                    )
+                    singleLine = true
                 )
                 
                 DropdownMenu(
@@ -163,7 +159,7 @@ fun AddPaymentDialog(
                 
                 Spacer(modifier = Modifier.height(12.dp))
                 
-                // Remarks Input
+                // Remarks
                 OutlinedTextField(
                     value = remarks,
                     onValueChange = { remarks = it },
@@ -175,7 +171,7 @@ fun AddPaymentDialog(
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                // Show status indicator for scheduled payments
+                // Show scheduled status
                 val isScheduled = selectedDate.isAfter(LocalDate.now())
                 if (isScheduled) {
                     Row(
@@ -201,8 +197,7 @@ fun AddPaymentDialog(
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                // Summary - Show amount preview
-                val amountValue = amount.toDoubleOrNull()
+                // Preview
                 if (amountValue != null && amountValue > 0) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -217,12 +212,12 @@ fun AddPaymentDialog(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "💰 Payment Amount",
+                                text = "Payment Amount",
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                             )
                             Text(
-                                text = "₹$amount",
+                                text = "₹${String.format("%.2f", amountValue)}",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -247,13 +242,14 @@ fun AddPaymentDialog(
                     
                     Button(
                         onClick = {
-                            val amountValue = amount.toDoubleOrNull()
-                            if (amountValue != null && amountValue > 0) {
-                                onAddPayment(amountValue, paymentMethod, remarks, selectedDate)
+                            val amount = amountText.toDoubleOrNull()
+                            if (amount != null && amount > 0) {
+                                android.util.Log.d("Payment", "Adding payment: $amount, $paymentMethod, $remarks, $selectedDate")
+                                onAddPayment(amount, paymentMethod, remarks, selectedDate)
                             }
                         },
                         modifier = Modifier.weight(1f),
-                        enabled = amount.toDoubleOrNull() != null && amount.toDoubleOrNull()!! > 0
+                        enabled = amountValue != null && amountValue > 0
                     ) {
                         Text(if (selectedDate.isAfter(LocalDate.now())) "Schedule" else "Add Payment")
                     }
@@ -262,7 +258,7 @@ fun AddPaymentDialog(
         }
     }
     
-    // Date Picker Dialog
+    // Date Picker
     if (showDatePicker) {
         SimpleDatePickerDialog(
             onDismiss = { showDatePicker = false },
@@ -290,42 +286,22 @@ fun SimpleDatePickerDialog(
         title = { Text("Select Date") },
         text = {
             Column {
-                // Month/Year navigation
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = { 
-                        if (month == 1) {
-                            month = 12
-                            year--
-                        } else {
-                            month--
-                        }
-                    }) {
-                        Text("◀")
-                    }
-                    Text(
-                        text = "${getMonthName(month)} $year",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                        if (month == 1) { month = 12; year-- } else { month-- }
+                    }) { Text("◀") }
+                    Text("${getMonthName(month)} $year", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     IconButton(onClick = { 
-                        if (month == 12) {
-                            month = 1
-                            year++
-                        } else {
-                            month++
-                        }
-                    }) {
-                        Text("▶")
-                    }
+                        if (month == 12) { month = 1; year++ } else { month++ }
+                    }) { Text("▶") }
                 }
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                // Day headers
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -343,7 +319,6 @@ fun SimpleDatePickerDialog(
                 
                 Spacer(modifier = Modifier.height(4.dp))
                 
-                // Days grid
                 val daysInMonth = getDaysInMonth(month, year)
                 val firstDayOfWeek = getFirstDayOfWeek(month, year)
                 
@@ -356,12 +331,7 @@ fun SimpleDatePickerDialog(
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         for (i in 0..6) {
-                            val isDayVisible = if (weekCounter == 0) {
-                                i >= firstDayOfWeek
-                            } else {
-                                true
-                            }
-                            
+                            val isDayVisible = if (weekCounter == 0) i >= firstDayOfWeek else true
                             val currentDay = if (isDayVisible) dayCounter else 0
                             
                             if (isDayVisible && currentDay <= daysInMonth) {
@@ -424,20 +394,11 @@ fun SimpleDatePickerDialog(
     )
 }
 
-// Helper functions
 fun getMonthName(month: Int): String {
     return when (month) {
-        1 -> "January"
-        2 -> "February"
-        3 -> "March"
-        4 -> "April"
-        5 -> "May"
-        6 -> "June"
-        7 -> "July"
-        8 -> "August"
-        9 -> "September"
-        10 -> "October"
-        11 -> "November"
+        1 -> "January"; 2 -> "February"; 3 -> "March"; 4 -> "April"
+        5 -> "May"; 6 -> "June"; 7 -> "July"; 8 -> "August"
+        9 -> "September"; 10 -> "October"; 11 -> "November"
         else -> "December"
     }
 }
@@ -452,6 +413,5 @@ fun getDaysInMonth(month: Int, year: Int): Int {
 }
 
 fun getFirstDayOfWeek(month: Int, year: Int): Int {
-    val date = LocalDate.of(year, month, 1)
-    return date.dayOfWeek.value % 7
+    return LocalDate.of(year, month, 1).dayOfWeek.value % 7
 }
