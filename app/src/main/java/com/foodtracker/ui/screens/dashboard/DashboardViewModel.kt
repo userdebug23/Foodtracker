@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.foodtracker.data.database.AppDatabase
 import com.foodtracker.data.entities.FoodEntry
 import com.foodtracker.data.repository.FoodRepository
+import com.foodtracker.data.repository.PaymentRepository
 import com.foodtracker.utils.DateUtils
 import com.foodtracker.utils.NumberUtils
 import kotlinx.coroutines.flow.*
@@ -19,7 +20,8 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
     val state: StateFlow<DashboardState> = _state.asStateFlow()
     
     private val database = AppDatabase.getInstance(context)
-    private val repository = FoodRepository(database.foodEntryDao())
+    private val foodRepository = FoodRepository(database.foodEntryDao())
+    private val paymentRepository = PaymentRepository(database.paymentDao())
     
     init {
         loadDashboard()
@@ -29,7 +31,7 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
         viewModelScope.launch {
             try {
                 val today = LocalDate.now()
-                val currentEntry = repository.getEntry(today)
+                val currentEntry = foodRepository.getEntry(today)
                 val mealRate = NumberUtils.getMealRate(context)
                 
                 val newEntry = when (mealType) {
@@ -96,7 +98,7 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
                     else -> return@launch
                 }
                 
-                repository.saveEntry(newEntry)
+                foodRepository.saveEntry(newEntry)
                 loadDashboard()
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -110,9 +112,29 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
                 val today = LocalDate.now()
                 val currentMonth = YearMonth.now()
                 
-                val todayEntry = repository.getEntry(today)
-                val summary = repository.getMonthlySummary(currentMonth)
-                val recentEntries = repository.getEntriesBetween(today.minusDays(6), today)
+                val todayEntry = foodRepository.getEntry(today)
+                val summary = foodRepository.getMonthlySummary(currentMonth)
+                val recentEntries = foodRepository.getEntriesBetween(today.minusDays(6), today)
+                
+                // ✅ Get total payments made (all time)
+                val totalPaid = paymentRepository.getTotalCompletedPayments()
+                
+                // ✅ Get total expense so far (all time - from all entries)
+                // For this, we need all entries, not just current month
+                val allEntries = foodRepository.getEntriesBetween(
+                    LocalDate.of(2024, 1, 1), // Start from beginning
+                    LocalDate.now()
+                )
+                val totalExpenseAllTime = allEntries.sumOf { it.dailyExpense }
+                
+                // ✅ Calculate balance = total paid - total expense
+                val balance = totalPaid - totalExpenseAllTime
+                
+                // ✅ Get daily rate
+                val dailyRate = NumberUtils.getDailyRate(context)
+                
+                // ✅ Calculate remaining days based on balance
+                val remainingDays = NumberUtils.calculateRemainingDays(balance, dailyRate)
                 
                 _state.update {
                     it.copy(
@@ -127,6 +149,10 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
                         dinnerCount = summary.totalDinner,
                         totalExpense = summary.totalExpense,
                         averageDailyExpense = summary.averageDailyExpense,
+                        presentDays = summary.presentDays,
+                        balance = balance,
+                        remainingDays = remainingDays,
+                        dailyRate = dailyRate,
                         recentEntries = recentEntries.reversed().take(7)
                     )
                 }
@@ -164,5 +190,9 @@ data class DashboardState(
     val dinnerCount: Int = 0,
     val totalExpense: Double = 0.0,
     val averageDailyExpense: Double = 0.0,
+    val presentDays: Int = 0,
+    val balance: Double = 0.0,
+    val remainingDays: Int = 0,
+    val dailyRate: Double = 160.0,
     val recentEntries: List<FoodEntry> = emptyList()
 )
