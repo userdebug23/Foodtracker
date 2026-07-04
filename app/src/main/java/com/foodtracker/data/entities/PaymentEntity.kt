@@ -11,7 +11,7 @@ data class PaymentEntity(
     val id: Long = 0,
     
     @ColumnInfo(name = "payment_date")
-    val paymentDate: LocalDate,  // When the payment was made (or will be made)
+    val paymentDate: LocalDate,
     
     @ColumnInfo(name = "amount")
     val amount: Double,
@@ -23,10 +23,10 @@ data class PaymentEntity(
     val remarks: String = "",
     
     @ColumnInfo(name = "is_scheduled")
-    val isScheduled: Boolean = false,  // true = future payment, false = done today
+    val isScheduled: Boolean = false,
     
     @ColumnInfo(name = "status")
-    val status: String = "Completed",  // "Completed", "Pending", "Overdue"
+    val status: String = "Completed",
     
     @ColumnInfo(name = "created_at")
     val createdAt: String = LocalDate.now().toString()
