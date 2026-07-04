@@ -21,13 +21,12 @@ class ExcelExporter {
         val sheet = workbook.createSheet("Food Entries")
         
         // Create header style
-        val headerStyle = workbook.createCellStyle().apply {
-            fillForegroundColor = IndexedColors.GREY_25_PERCENT.index
-            fillPattern = FillPatternType.SOLID_FOREGROUND
-            val font = workbook.createFont()
-            font.isBold = true
-            setFont(font)
-        }
+        val headerStyle = workbook.createCellStyle()
+        headerStyle.fillForegroundColor = IndexedColors.GREY_25_PERCENT.index
+        headerStyle.fillPattern = FillPatternType.SOLID_FOREGROUND
+        val headerFont = workbook.createFont()
+        headerFont.bold = true
+        headerStyle.setFont(headerFont)
         
         // Create header row
         val headers = arrayOf("Date", "Day", "Breakfast", "Lunch", "Dinner", "Meals", "Daily Expense", "Remarks")
@@ -58,13 +57,12 @@ class ExcelExporter {
         
         // Create summary sheet
         val summarySheet = workbook.createSheet("Summary")
-        val summaryHeaderStyle = workbook.createCellStyle().apply {
-            fillForegroundColor = IndexedColors.LIGHT_GREEN.index
-            fillPattern = FillPatternType.SOLID_FOREGROUND
-            val font = workbook.createFont()
-            font.isBold = true
-            setFont(font)
-        }
+        val summaryHeaderStyle = workbook.createCellStyle()
+        summaryHeaderStyle.fillForegroundColor = IndexedColors.LIGHT_GREEN.index
+        summaryHeaderStyle.fillPattern = FillPatternType.SOLID_FOREGROUND
+        val summaryFont = workbook.createFont()
+        summaryFont.bold = true
+        summaryHeaderStyle.setFont(summaryFont)
         
         val summaryData = listOf(
             "Month" to yearMonth.toString(),
