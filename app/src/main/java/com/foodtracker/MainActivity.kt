@@ -7,12 +7,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.foodtracker.ui.navigation.NavGraph
-import com.foodtracker.ui.screens.settings.SettingsViewModel
 import com.foodtracker.ui.theme.FoodTrackerTheme
 
 class MainActivity : ComponentActivity() {
@@ -26,12 +24,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun FoodTrackerApp() {
-    val context = androidx.compose.ui.platform.LocalContext.current
+    // Simple theme state
+    val isDarkTheme = remember { mutableStateOf(false) }
     
-    // Simple theme state - will be expanded with Settings
-    var isDarkTheme by androidx.compose.runtime.mutableStateOf(false)
-    
-    FoodTrackerTheme(darkTheme = isDarkTheme) {
+    FoodTrackerTheme(darkTheme = isDarkTheme.value) {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
