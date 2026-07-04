@@ -38,44 +38,54 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
                 val dailyRate = NumberUtils.getDailyRate(context)
                 val currentMonth = YearMonth.from(selectedDate)
                 
-                Log.d("DashboardVM", "Loading for date: $selectedDate")
+                Log.d("DashboardVM", "=== LOADING DASHBOARD ===")
+                Log.d("DashboardVM", "Selected Date: $selectedDate")
                 
-                // Get entry for selected date
+                // ✅ Get entry for selected date
                 val selectedEntry = foodRepository.getEntry(selectedDate)
+                Log.d("DashboardVM", "Selected Entry: $selectedEntry")
                 
-                // Get current month summary
+                // ✅ Get current month summary
                 val summary = foodRepository.getMonthlySummary(currentMonth)
+                Log.d("DashboardVM", "Monthly Summary - Total Expense: ${summary.totalExpense}")
                 
-                // Get recent entries (7 days around selected date)
+                // ✅ Get recent entries
                 val startDate = selectedDate.minusDays(7)
                 val endDate = selectedDate.plusDays(1)
                 val recentEntries = foodRepository.getEntriesBetween(startDate, endDate)
                 
-                // ✅ FIX: Get ALL entries for total expense (all time)
+                // ✅ FIX: Get ALL entries from database for total expense
+                // Using a very early date to get all entries
                 val allEntries = foodRepository.getEntriesBetween(
-                    LocalDate.of(2024, 1, 1),
-                    LocalDate.now()
+                    LocalDate.of(2000, 1, 1),
+                    LocalDate.now().plusDays(1)
                 )
+                Log.d("DashboardVM", "All Entries Count: ${allEntries.size}")
                 
-                // ✅ FIX: Calculate total expense correctly
-                val totalExpenseAllTime = allEntries.sumOf { it.dailyExpense }
+                // ✅ Calculate total expense correctly
+                var totalExpenseAllTime = 0.0
+                for (entry in allEntries) {
+                    totalExpenseAllTime += entry.dailyExpense
+                    Log.d("DashboardVM", "Entry: ${entry.date}, Expense: ${entry.dailyExpense}")
+                }
                 Log.d("DashboardVM", "Total Expense All Time: $totalExpenseAllTime")
                 
-                // ✅ FIX: Get total paid correctly
+                // ✅ Get total paid correctly
                 val totalPaid = paymentRepository.getTotalCompletedPayments()
                 Log.d("DashboardVM", "Total Paid: $totalPaid")
                 
-                // ✅ FIX: Balance = Total Paid - Total Expense
+                // ✅ Balance = Total Paid - Total Expense
                 val balance = totalPaid - totalExpenseAllTime
                 Log.d("DashboardVM", "Balance: $balance")
                 
-                // ✅ FIX: Remaining Days = Balance / Daily Rate
+                // ✅ Remaining Days = Balance / Daily Rate
                 val remainingDays = if (dailyRate > 0 && balance > 0) {
                     (balance / dailyRate).toInt()
                 } else {
                     0
                 }
                 Log.d("DashboardVM", "Remaining Days: $remainingDays")
+                Log.d("DashboardVM", "=== DONE ===")
                 
                 _state.update {
                     it.copy(
@@ -93,7 +103,7 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
                         totalExpense = summary.totalExpense,
                         averageDailyExpense = summary.averageDailyExpense,
                         presentDays = summary.presentDays,
-                        // ✅ FIXED: Balance data
+                        // Balance data
                         totalPaid = totalPaid,
                         balance = balance,
                         remainingDays = remainingDays,
@@ -134,7 +144,7 @@ data class DashboardState(
     val totalExpense: Double = 0.0,
     val averageDailyExpense: Double = 0.0,
     val presentDays: Int = 0,
-    val totalPaid: Double = 0.0,  // ✅ ADDED
+    val totalPaid: Double = 0.0,
     val balance: Double = 0.0,
     val remainingDays: Int = 0,
     val dailyRate: Double = 160.0,
