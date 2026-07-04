@@ -5,8 +5,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.foodtracker.ui.screens.dashboard.DashboardScreen
 import com.foodtracker.ui.screens.calendar.CalendarScreen
+import com.foodtracker.ui.screens.dashboard.DashboardScreen
 import com.foodtracker.ui.screens.payments.PaymentScreen
 import com.foodtracker.ui.screens.reports.ReportsScreen
 import com.foodtracker.ui.screens.settings.SettingsScreen
@@ -20,13 +20,14 @@ sealed class Screen(val route: String) {
 }
 
 @Composable
-fun NavigationGraph(
+fun NavGraph(
     navController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    startDestination: String = Screen.Dashboard.route
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Dashboard.route,
+        startDestination = startDestination,
         modifier = modifier
     ) {
         composable(Screen.Dashboard.route) {
