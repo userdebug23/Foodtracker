@@ -1,7 +1,6 @@
 package com.foodtracker.ui.screens.settings
 
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,20 +15,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
-import java.io.File
 
 @Composable
 fun SettingsScreen() {
     val context = LocalContext.current
-    val viewModel: SettingsViewModel = viewModel(
-        factory = SettingsViewModel.provideFactory(context)
-    )
     
-    val state by viewModel.state.collectAsState()
+    // Simple state for settings
+    var mealRate by remember { mutableStateOf(50.0) }
+    var isDarkTheme by remember { mutableStateOf(false) }
+    var showMealRateDialog by remember { mutableStateOf(false) }
     
-    // Show toast messages
     fun showToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
@@ -53,25 +48,22 @@ fun SettingsScreen() {
         // General Section
         item {
             SettingsSection(title = "General") {
-                // Meal Rate
-                var showMealRateDialog by remember { mutableStateOf(false) }
-                
                 SettingsItem(
                     icon = "💰",
                     title = "Meal Rate",
-                    subtitle = "₹${String.format("%.2f", state.mealRate)} per meal",
+                    subtitle = "₹${String.format("%.2f", mealRate)} per meal",
                     onClick = { showMealRateDialog = true }
                 )
                 
                 Divider()
                 
-                // Theme Toggle
                 SettingsSwitch(
-                    icon = if (state.isDarkTheme) "🌙" else "☀️",
+                    icon = if (isDarkTheme) "🌙" else "☀️",
                     title = "Dark Mode",
-                    checked = state.isDarkTheme,
-                    onCheckedChange = {
-                        viewModel.toggleTheme()
+                    checked = isDarkTheme,
+                    onCheckedChange = { 
+                        isDarkTheme = !isDarkTheme
+                        showToast("Theme changed")
                     }
                 )
             }
@@ -85,12 +77,7 @@ fun SettingsScreen() {
                     title = "Export Data",
                     subtitle = "Export to Excel file",
                     onClick = {
-                        val file = viewModel.exportData()
-                        if (file != null) {
-                            showToast("Data exported: ${file.name}")
-                        } else {
-                            showToast("Export failed")
-                        }
+                        showToast("Export feature coming soon")
                     }
                 )
                 
@@ -101,7 +88,6 @@ fun SettingsScreen() {
                     title = "Import Data",
                     subtitle = "Import from Excel file",
                     onClick = {
-                        // File picker would be implemented here
                         showToast("Import feature coming soon")
                     }
                 )
@@ -113,7 +99,7 @@ fun SettingsScreen() {
                     title = "Reset Database",
                     subtitle = "Delete all data",
                     onClick = {
-                        // Show confirmation dialog
+                        showToast("Reset feature coming soon")
                     },
                     isDanger = true
                 )
@@ -145,10 +131,10 @@ fun SettingsScreen() {
     // Meal Rate Dialog
     if (showMealRateDialog) {
         MealRateDialog(
-            currentRate = state.mealRate,
+            currentRate = mealRate,
             onDismiss = { showMealRateDialog = false },
             onSave = { newRate ->
-                viewModel.saveMealRate(newRate)
+                mealRate = newRate
                 showMealRateDialog = false
                 showToast("Meal rate updated to ₹${String.format("%.2f", newRate)}")
             }
@@ -327,21 +313,4 @@ fun MealRateDialog(
             }
         }
     )
-}
-
-// ViewModel Factory
-class SettingsViewModelFactory(private val context: Context) {
-    fun create(): SettingsViewModel {
-        return SettingsViewModel(context)
-    }
-}
-
-// Extension to provide ViewModel factory
-fun SettingsViewModel.provideFactory(context: Context): androidx.lifecycle.ViewModelProvider.Factory {
-    return object : androidx.lifecycle.ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return SettingsViewModel(context) as T
-        }
-    }
 }
