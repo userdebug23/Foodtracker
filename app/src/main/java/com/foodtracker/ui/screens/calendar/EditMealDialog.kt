@@ -119,7 +119,7 @@ fun EditMealDialog(
                     Spacer(modifier = Modifier.height(20.dp))
                     
                     val mealCount = NumberUtils.calculateMealCount(breakfast, lunch, dinner)
-                    val dailyExpense = NumberUtils.calculateDailyExpenseSync(context, breakfast, lunch, dinner)
+                    val dailyExpense = NumberUtils.calculateDailyExpense(context, breakfast, lunch, dinner)
                     
                     Card(
                         modifier = Modifier.fillMaxWidth(),
