@@ -95,71 +95,60 @@ fun SettingsScreen() {
             Spacer(modifier = Modifier.height(8.dp))
         }
         
-        // Daily Amount Section
-        item {
-            SettingsSection(title = "💰 Daily Budget") {
-                Card(
+        // In the SettingsScreen, replace the Daily Amount section with:
+
+// Daily Rate Section
+item {
+    SettingsSection(title = "💰 Daily Rate") {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-                    )
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
+                    Column {
+                        Text(
+                            text = "Daily Rate",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                        )
+                        Text(
+                            text = "₹${String.format("%.2f", dailyRate)}",
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Button(
+                        onClick = { showDialog = true },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text(
-                                    text = "Daily Amount",
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                                )
-                                Text(
-                                    text = "₹${String.format("%.2f", dailyAmount)}",
-                                    fontSize = 28.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                            Button(
-                                onClick = { showDialog = true },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary
-                                )
-                            ) {
-                                Text("Change")
-                            }
-                        }
-                        
-                        Spacer(modifier = Modifier.height(12.dp))
-                        
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            MealBreakdownItem(
-                                label = "Breakfast",
-                                amount = perMealRate,
-                                icon = "🌅"
-                            )
-                            MealBreakdownItem(
-                                label = "Lunch",
-                                amount = perMealRate,
-                                icon = "☀️"
-                            )
-                            MealBreakdownItem(
-                                label = "Dinner",
-                                amount = perMealRate,
-                                icon = "🌙"
-                            )
-                        }
+                        Text("Change")
                     }
                 }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Text(
+                    text = "This is the cost per full day (3 meals)",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                )
+            }
+        }
+    }
+}
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
