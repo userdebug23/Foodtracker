@@ -25,46 +25,56 @@ class DashboardViewModel @Inject constructor(
         loadDashboard()
     }
     
-    private fun loadDashboard() {
+    fun loadDashboard() {
         viewModelScope.launch {
-            val currentMonth = YearMonth.now()
-            val today = LocalDate.now()
-            
-            val todayEntry = repository.getEntry(today)
-            val todayBreakfast = todayEntry?.breakfast ?: false
-            val todayLunch = todayEntry?.lunch ?: false
-            val todayDinner = todayEntry?.dinner ?: false
-            val todayExpense = todayEntry?.dailyExpense ?: 0.0
-            
-            val summary = repository.getMonthlySummary(currentMonth)
-            
-            val startDate = today.minusDays(6)
-            val recentEntries = repository.getEntriesBetween(startDate, today)
-                .reversed()
-                .take(7)
-            
-            val startOfMonth = currentMonth.atDay(1)
-            val endOfMonth = currentMonth.atEndOfMonth()
-            val paidAmount = paymentRepository.getTotalPaymentsBetween(startOfMonth, endOfMonth)
-            
-            _state.update {
-                it.copy(
-                    todayBreakfast = todayBreakfast,
-                    todayLunch = todayLunch,
-                    todayDinner = todayDinner,
-                    todayExpense = todayExpense,
-                    totalMeals = summary.totalMeals,
-                    breakfastCount = summary.totalBreakfast,
-                    lunchCount = summary.totalLunch,
-                    dinnerCount = summary.totalDinner,
-                    totalExpense = summary.totalExpense,
-                    paidAmount = paidAmount,
-                    balance = summary.totalExpense - paidAmount,
-                    recentEntries = recentEntries,
-                    isLoading = false
-                )
+            try {
+                val currentMonth = YearMonth.now()
+                val today = LocalDate.now()
+                
+                val todayEntry = repository.getEntry(today)
+                val todayBreakfast = todayEntry?.breakfast ?: false
+                val todayLunch = todayEntry?.lunch ?: false
+                val todayDinner = todayEntry?.dinner ?: false
+                val todayExpense = todayEntry?.dailyExpense ?: 0.0
+                
+                val summary = repository.getMonthlySummary(currentMonth)
+                
+                val startDate = today.minusDays(6)
+                val recentEntries = repository.getEntriesBetween(startDate, today)
+                    .reversed()
+                    .take(7)
+                
+                val startOfMonth = currentMonth.atDay(1)
+                val endOfMonth = currentMonth.atEndOfMonth()
+                val paidAmount = paymentRepository.getTotalPaymentsBetween(startOfMonth, endOfMonth)
+                
+                _state.update {
+                    it.copy(
+                        todayBreakfast = todayBreakfast,
+                        todayLunch = todayLunch,
+                        todayDinner = todayDinner,
+                        todayExpense = todayExpense,
+                        totalMeals = summary.totalMeals,
+                        breakfastCount = summary.totalBreakfast,
+                        lunchCount = summary.totalLunch,
+                        dinnerCount = summary.totalDinner,
+                        totalExpense = summary.totalExpense,
+                        paidAmount = paidAmount,
+                        balance = summary.totalExpense - paidAmount,
+                        recentEntries = recentEntries,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(isLoading = false)
+                }
             }
         }
+    }
+    
+    fun refresh() {
+        loadDashboard()
     }
 }
 
