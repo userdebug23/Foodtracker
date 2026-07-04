@@ -1,8 +1,5 @@
 package com.foodtracker.ui.screens.dashboard
 
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foodtracker.data.database.AppDatabase
@@ -15,16 +12,15 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 
-class DashboardViewModel : ViewModel() {
+class DashboardViewModel(private val context: android.content.Context) : ViewModel() {
     
     private val _state = MutableStateFlow(DashboardState())
     val state: StateFlow<DashboardState> = _state.asStateFlow()
     
-    private lateinit var repository: FoodRepository
+    private val database = AppDatabase.getInstance(context)
+    private val repository = FoodRepository(database.foodEntryDao())
     
-    fun init(context: android.content.Context) {
-        val database = AppDatabase.getInstance(context)
-        repository = FoodRepository(database.foodEntryDao())
+    init {
         loadDashboard()
     }
     
@@ -95,8 +91,6 @@ class DashboardViewModel : ViewModel() {
             try {
                 val today = LocalDate.now()
                 val currentMonth = YearMonth.now()
-                val startDate = currentMonth.atDay(1)
-                val endDate = currentMonth.atEndOfMonth()
                 
                 val todayEntry = repository.getEntry(today)
                 val summary = repository.getMonthlySummary(currentMonth)
