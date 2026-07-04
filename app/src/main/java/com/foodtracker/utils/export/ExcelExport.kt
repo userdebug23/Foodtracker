@@ -3,8 +3,7 @@ package com.foodtracker.utils.export
 import android.content.Context
 import com.foodtracker.data.local.entities.FoodEntryEntity
 import com.foodtracker.domain.repository.MonthlySummary
-import org.apache.poi.ss.usermodel.FillPatternType
-import org.apache.poi.ss.usermodel.IndexedColors
+import org.apache.poi.ss.usermodel.*
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
 import java.io.FileOutputStream
@@ -21,14 +20,16 @@ class ExcelExporter {
         val workbook = XSSFWorkbook()
         val sheet = workbook.createSheet("Food Entries")
         
+        // Create header style
         val headerStyle = workbook.createCellStyle().apply {
             fillForegroundColor = IndexedColors.GREY_25_PERCENT.index
             fillPattern = FillPatternType.SOLID_FOREGROUND
-            setFont(workbook.createFont().apply {
-                isBold = true
-            })
+            val font = workbook.createFont()
+            font.isBold = true
+            setFont(font)
         }
         
+        // Create header row
         val headers = arrayOf("Date", "Day", "Breakfast", "Lunch", "Dinner", "Meals", "Daily Expense", "Remarks")
         val headerRow = sheet.createRow(0)
         headers.forEachIndexed { index, header ->
@@ -37,6 +38,7 @@ class ExcelExporter {
             cell.cellStyle = headerStyle
         }
         
+        // Add data rows
         entries.forEachIndexed { index, entry ->
             val row = sheet.createRow(index + 1)
             row.createCell(0).setCellValue(entry.date.toString())
@@ -49,10 +51,54 @@ class ExcelExporter {
             row.createCell(7).setCellValue(entry.remarks ?: "")
         }
         
+        // Auto-size columns
         for (i in 0..7) {
             sheet.autoSizeColumn(i)
         }
         
+        // Create summary sheet
+        val summarySheet = workbook.createSheet("Summary")
+        val summaryHeaderStyle = workbook.createCellStyle().apply {
+            fillForegroundColor = IndexedColors.LIGHT_GREEN.index
+            fillPattern = FillPatternType.SOLID_FOREGROUND
+            val font = workbook.createFont()
+            font.isBold = true
+            setFont(font)
+        }
+        
+        val summaryData = listOf(
+            "Month" to yearMonth.toString(),
+            "Total Days" to summary.totalDays.toString(),
+            "Present Days" to summary.presentDays.toString(),
+            "Absent Days" to summary.absentDays.toString(),
+            "Total Breakfast" to summary.totalBreakfast.toString(),
+            "Total Lunch" to summary.totalLunch.toString(),
+            "Total Dinner" to summary.totalDinner.toString(),
+            "Total Meals" to summary.totalMeals.toString(),
+            "Total Expense" to summary.totalExpense.toString(),
+            "Average Daily Expense" to summary.averageDailyExpense.toString(),
+            "Monthly Charge" to summary.monthlyCharge.toString(),
+            "Paid Amount" to summary.paidAmount.toString(),
+            "Balance" to summary.balance.toString(),
+            "Days Covered" to summary.daysCovered.toString(),
+            "Remaining Days" to summary.remainingDays.toString(),
+            "Remaining Meals" to summary.remainingMeals.toString()
+        )
+        
+        summaryData.forEachIndexed { index, (label, value) ->
+            val row = summarySheet.createRow(index)
+            val labelCell = row.createCell(0)
+            labelCell.setCellValue(label)
+            labelCell.cellStyle = summaryHeaderStyle
+            
+            val valueCell = row.createCell(1)
+            valueCell.setCellValue(value)
+        }
+        
+        summarySheet.autoSizeColumn(0)
+        summarySheet.autoSizeColumn(1)
+        
+        // Save file
         val fileName = "food_expense_${yearMonth}.xlsx"
         val file = File(context.filesDir, fileName)
         FileOutputStream(file).use { workbook.write(it) }
