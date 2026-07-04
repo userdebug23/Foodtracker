@@ -33,7 +33,7 @@ fun CalendarScreen() {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
             // Header
@@ -57,7 +57,6 @@ fun CalendarScreen() {
                     Text("Today", color = MaterialTheme.colorScheme.primary)
                 }
             }
-            Spacer(modifier = Modifier.height(4.dp))
             
             // Month Navigation
             Row(
@@ -78,7 +77,9 @@ fun CalendarScreen() {
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
-            
+        }
+        
+        item {
             // Day Headers
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -96,22 +97,23 @@ fun CalendarScreen() {
                 }
             }
             Spacer(modifier = Modifier.height(4.dp))
-            
-            // Calendar Grid
-            state.weeks.forEach { week ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    week.forEach { day ->
-                        CalendarDayCell(
-                            day = day,
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f)
-                                .padding(2.dp)
-                        )
-                    }
+        }
+        
+        // Calendar Grid - Each week as a separate item
+        items(state.weeks.size) { weekIndex ->
+            val week = state.weeks[weekIndex]
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                week.forEach { day ->
+                    CalendarDayCell(
+                        day = day,
+                        modifier = Modifier
+                            .weight(1f)
+                            .aspectRatio(1f)
+                            .padding(2.dp)
+                    )
                 }
             }
         }
@@ -163,54 +165,28 @@ fun CalendarScreen() {
                         }
                     }
                     
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Box(
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(Color(0xFF4CAF50))
-                            )
-                            Text(
-                                text = state.presentDays.toString(),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text("Present", fontSize = 10.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
-                        }
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Box(
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(Color(0xFFFFC107))
-                            )
-                            Text(
-                                text = (state.absentDays - (state.weeks.size * 7 - (state.calendarDays.size))).toString(),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text("Partial", fontSize = 10.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
-                        }
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Box(
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(Color(0xFFBDBDBD))
-                            )
-                            Text(
-                                text = state.absentDays.toString(),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text("Absent", fontSize = 10.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
-                        }
+                        // Legend items with counts
+                        LegendItemWithCount(
+                            label = "Present",
+                            count = state.presentDays.toString(),
+                            color = Color(0xFF4CAF50)
+                        )
+                        LegendItemWithCount(
+                            label = "Partial",
+                            count = (state.absentDays).toString(),
+                            color = Color(0xFFFFC107)
+                        )
+                        LegendItemWithCount(
+                            label = "Absent",
+                            count = state.absentDays.toString(),
+                            color = Color(0xFFBDBDBD)
+                        )
                     }
                 }
             }
@@ -231,6 +207,10 @@ fun CalendarScreen() {
                 LegendItem("No Meals", Color(0xFFBDBDBD))
             }
         }
+        
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
     }
 }
 
@@ -242,23 +222,22 @@ fun CalendarDayCell(
     val dayColor = if (day.isCurrentMonth) {
         when (day.mealCount) {
             3 -> Color(0xFF4CAF50)  // All meals - Green
-            0 -> Color(0xFFBDBDBD)  // No meals - Gray
+            0 -> Color(0xFFE0E0E0)  // No meals - Light Gray
             else -> Color(0xFFFFC107) // Partial - Yellow
         }
     } else {
-        Color(0xFFE0E0E0)
+        Color(0xFFF5F5F5) // Non-current month
     }
     
     val isToday = day.date == LocalDate.now() && day.isCurrentMonth
     
     Card(
-        modifier = modifier
-            .clickable { 
-                // Show day details - can expand later
-            },
+        modifier = modifier.clickable { 
+            // Day clicked - can expand later
+        },
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isToday) dayColor.copy(alpha = 0.3f) else dayColor
+            containerColor = dayColor
         ),
         border = if (isToday) {
             androidx.compose.foundation.BorderStroke(
@@ -278,24 +257,25 @@ fun CalendarDayCell(
                 text = day.date.dayOfMonth.toString(),
                 fontSize = 14.sp,
                 fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
-                color = if (day.isCurrentMonth) {
-                    if (day.mealCount == 3) Color.White else Color.Black
-                } else {
-                    Color.Gray
-                }
+                color = if (day.isCurrentMonth && day.mealCount == 3) Color.White 
+                    else if (day.isCurrentMonth) Color.Black 
+                    else Color.Gray
             )
             if (day.isCurrentMonth && day.mealCount > 0) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    horizontalArrangement = Arrangement.spacedBy(1.dp)
                 ) {
                     if (day.breakfast) {
-                        Text("B", fontSize = 7.sp, color = if (day.mealCount == 3) Color.White else Color.Black)
+                        Text("B", fontSize = 7.sp, 
+                            color = if (day.mealCount == 3) Color.White else Color.Black)
                     }
                     if (day.lunch) {
-                        Text("L", fontSize = 7.sp, color = if (day.mealCount == 3) Color.White else Color.Black)
+                        Text("L", fontSize = 7.sp,
+                            color = if (day.mealCount == 3) Color.White else Color.Black)
                     }
                     if (day.dinner) {
-                        Text("D", fontSize = 7.sp, color = if (day.mealCount == 3) Color.White else Color.Black)
+                        Text("D", fontSize = 7.sp,
+                            color = if (day.mealCount == 3) Color.White else Color.Black)
                     }
                 }
             }
@@ -314,6 +294,34 @@ fun LegendItem(label: String, color: Color) {
                 .size(12.dp)
                 .clip(RoundedCornerShape(4.dp))
                 .background(color)
+        )
+        Text(
+            text = label,
+            fontSize = 10.sp,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+        )
+    }
+}
+
+@Composable
+fun LegendItemWithCount(
+    label: String,
+    count: String,
+    color: Color
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(16.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(color)
+        )
+        Text(
+            text = count,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium
         )
         Text(
             text = label,
