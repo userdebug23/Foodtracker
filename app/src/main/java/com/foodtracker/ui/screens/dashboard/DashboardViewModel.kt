@@ -26,27 +26,37 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
     }
     
     fun toggleMeal(mealType: String) {
-        viewModelScope.launch {
-            val today = LocalDate.now()
-            val currentEntry = repository.getEntry(today)
-            
-            val newEntry = when (mealType) {
-                "breakfast" -> {
-                    val newBreakfast = !(currentEntry?.breakfast ?: false)
-                    val mealCount = NumberUtils.calculateMealCount(newBreakfast, currentEntry?.lunch ?: false, currentEntry?.dinner ?: false)
-                    val dailyExpense = NumberUtils.calculateDailyExpense(newBreakfast, currentEntry?.lunch ?: false, currentEntry?.dinner ?: false)
-                    
-                    FoodEntry(
-                        id = currentEntry?.id ?: 0,
-                        date = today,
-                        dayOfWeek = DateUtils.getDayOfWeek(today),
-                        breakfast = newBreakfast,
-                        lunch = currentEntry?.lunch ?: false,
-                        dinner = currentEntry?.dinner ?: false,
-                        mealCount = mealCount,
-                        dailyExpense = dailyExpense
-                    )
-                }
+    viewModelScope.launch {
+        val today = LocalDate.now()
+        val currentEntry = repository.getEntry(today)
+        
+        val dailyAmount = NumberUtils.getDailyAmount(context)
+        val mealRate = dailyAmount / 3
+        
+        val newEntry = when (mealType) {
+            "breakfast" -> {
+                val newBreakfast = !(currentEntry?.breakfast ?: false)
+                val mealCount = NumberUtils.calculateMealCount(newBreakfast, currentEntry?.lunch ?: false, currentEntry?.dinner ?: false)
+                val dailyExpense = mealCount * mealRate
+                
+                FoodEntry(
+                    id = currentEntry?.id ?: 0,
+                    date = today,
+                    dayOfWeek = DateUtils.getDayOfWeek(today),
+                    breakfast = newBreakfast,
+                    lunch = currentEntry?.lunch ?: false,
+                    dinner = currentEntry?.dinner ?: false,
+                    mealCount = mealCount,
+                    dailyExpense = dailyExpense
+                )
+            }
+            // ... same for lunch and dinner with mealRate
+            else -> return@launch
+        }
+        repository.saveEntry(newEntry)
+        loadDashboard()
+    }
+}
                 "lunch" -> {
                     val newLunch = !(currentEntry?.lunch ?: false)
                     val mealCount = NumberUtils.calculateMealCount(currentEntry?.breakfast ?: false, newLunch, currentEntry?.dinner ?: false)
