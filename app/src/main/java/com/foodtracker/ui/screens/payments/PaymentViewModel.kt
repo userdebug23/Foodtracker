@@ -18,7 +18,7 @@ class PaymentViewModel(private val context: Context) : ViewModel() {
     val state: StateFlow<PaymentState> = _state.asStateFlow()
     
     private val database = AppDatabase.getInstance(context)
-    private val paymentRepository = PaymentRepository(database.paymentDao())  // ✅ FIXED
+    private val paymentRepository = PaymentRepository(database.paymentDao())
     private val foodRepository = FoodRepository(database.foodEntryDao())
     
     init {
@@ -68,34 +68,49 @@ class PaymentViewModel(private val context: Context) : ViewModel() {
     
     fun addPayment(amount: Double, paymentMethod: String, remarks: String, paymentDate: LocalDate) {
         viewModelScope.launch {
-            val today = LocalDate.now()
-            val isScheduled = paymentDate.isAfter(today)
-            val status = if (isScheduled) "Pending" else "Completed"
-            
-            val payment = PaymentEntity(
-                paymentDate = paymentDate,
-                amount = amount,
-                paymentMethod = paymentMethod.ifEmpty { "Cash" },
-                remarks = remarks,
-                isScheduled = isScheduled,
-                status = status
-            )
-            paymentRepository.addPayment(payment)
-            loadPayments()
+            try {
+                val today = LocalDate.now()
+                val isScheduled = paymentDate.isAfter(today)
+                val status = if (isScheduled) "Pending" else "Completed"
+                
+                val payment = PaymentEntity(
+                    paymentDate = paymentDate,
+                    amount = amount,
+                    paymentMethod = paymentMethod.ifEmpty { "Cash" },
+                    remarks = remarks,
+                    isScheduled = isScheduled,
+                    status = status
+                )
+                paymentRepository.addPayment(payment)
+                // ✅ Force refresh after adding
+                loadPayments()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
     
     fun markPaymentAsCompleted(paymentId: Long) {
         viewModelScope.launch {
-            paymentRepository.markPaymentAsCompleted(paymentId)
-            loadPayments()
+            try {
+                paymentRepository.markPaymentAsCompleted(paymentId)
+                // ✅ Force refresh after marking as completed
+                loadPayments()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
     
     fun deletePayment(paymentId: Long) {
         viewModelScope.launch {
-            paymentRepository.deletePayment(paymentId)
-            loadPayments()
+            try {
+                paymentRepository.deletePayment(paymentId)
+                // ✅ Force refresh after deleting
+                loadPayments()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
     
