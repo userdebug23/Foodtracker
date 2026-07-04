@@ -3,7 +3,6 @@ package com.foodtracker.ui.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -14,14 +13,12 @@ import com.foodtracker.ui.screens.dashboard.DashboardScreen
 import com.foodtracker.ui.screens.payments.PaymentScreen
 import com.foodtracker.ui.screens.reports.ReportsScreen
 import com.foodtracker.ui.screens.settings.SettingsScreen
+import java.time.LocalDate
 
 @Composable
 fun NavGraph(
     navController: NavHostController = rememberNavController()
 ) {
-    // ✅ Force refresh when navigating back to Dashboard
-    val currentDestination = navController.currentBackStackEntry?.destination?.route
-    
     Scaffold(
         bottomBar = {
             BottomNavigationBar(navController = navController)
@@ -33,8 +30,7 @@ fun NavGraph(
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Dashboard.route) {
-                // DashboardScreen handles its own refresh via LaunchedEffect
-                DashboardScreen()
+                DashboardScreen(selectedDate = LocalDate.now())
             }
             composable(Screen.Calendar.route) {
                 CalendarScreen()
