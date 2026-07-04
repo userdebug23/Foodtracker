@@ -18,12 +18,9 @@ class FoodRepository(private val dao: FoodEntryDao) {
         return dao.getEntryByDate(date.format(dateFormatter))
     }
     
-    suspend fun getEntriesBetween(startDate: LocalDate, endDate: LocalDate): List<FoodEntry> {
-        return dao.getEntriesBetween(
-            startDate.format(dateFormatter),
-            endDate.format(dateFormatter)
-        )
-    }
+    ssuspend fun getEntriesBetween(startDate: LocalDate, endDate: LocalDate): List<FoodEntry> {
+    return dao.getEntriesBetween(startDate.toString(), endDate.toString())
+}
     
     suspend fun getMonthlySummary(yearMonth: YearMonth): MonthlySummary {
         val startDate = yearMonth.atDay(1)
