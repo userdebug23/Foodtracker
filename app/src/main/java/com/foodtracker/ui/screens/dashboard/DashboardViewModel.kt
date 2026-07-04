@@ -28,7 +28,6 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
         refresh(LocalDate.now())
     }
     
-    // ✅ Updated to accept a date parameter
     fun refresh(selectedDate: LocalDate = LocalDate.now()) {
         loadDashboard(selectedDate)
     }
@@ -52,21 +51,31 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
                 val endDate = selectedDate.plusDays(1)
                 val recentEntries = foodRepository.getEntriesBetween(startDate, endDate)
                 
-                // Get ALL entries for total expense (all time)
+                // ✅ FIX: Get ALL entries for total expense (all time)
                 val allEntries = foodRepository.getEntriesBetween(
                     LocalDate.of(2024, 1, 1),
                     LocalDate.now()
                 )
+                
+                // ✅ FIX: Calculate total expense correctly
                 val totalExpenseAllTime = allEntries.sumOf { it.dailyExpense }
+                Log.d("DashboardVM", "Total Expense All Time: $totalExpenseAllTime")
                 
-                // Get total paid
+                // ✅ FIX: Get total paid correctly
                 val totalPaid = paymentRepository.getTotalCompletedPayments()
+                Log.d("DashboardVM", "Total Paid: $totalPaid")
                 
-                // Balance = Total Paid - Total Expense
+                // ✅ FIX: Balance = Total Paid - Total Expense
                 val balance = totalPaid - totalExpenseAllTime
+                Log.d("DashboardVM", "Balance: $balance")
                 
-                // Remaining Days = Balance / Daily Rate
-                val remainingDays = if (dailyRate > 0) (balance / dailyRate).toInt() else 0
+                // ✅ FIX: Remaining Days = Balance / Daily Rate
+                val remainingDays = if (dailyRate > 0 && balance > 0) {
+                    (balance / dailyRate).toInt()
+                } else {
+                    0
+                }
+                Log.d("DashboardVM", "Remaining Days: $remainingDays")
                 
                 _state.update {
                     it.copy(
@@ -84,7 +93,8 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
                         totalExpense = summary.totalExpense,
                         averageDailyExpense = summary.averageDailyExpense,
                         presentDays = summary.presentDays,
-                        // Balance data
+                        // ✅ FIXED: Balance data
+                        totalPaid = totalPaid,
                         balance = balance,
                         remainingDays = remainingDays,
                         dailyRate = dailyRate,
@@ -124,6 +134,7 @@ data class DashboardState(
     val totalExpense: Double = 0.0,
     val averageDailyExpense: Double = 0.0,
     val presentDays: Int = 0,
+    val totalPaid: Double = 0.0,  // ✅ ADDED
     val balance: Double = 0.0,
     val remainingDays: Int = 0,
     val dailyRate: Double = 160.0,
