@@ -222,6 +222,46 @@ fun DashboardScreen(
                 }
             }
         }
+
+// Last Payment Card
+if (state.lastPaymentDate.isNotEmpty()) {
+    item {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFF9C27B0).copy(alpha = 0.12f)
+            )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "💳 Last Payment",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                    )
+                    Text(
+                        text = state.lastPaymentDate,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                Text(
+                    text = NumberUtils.formatCurrency(state.lastPaymentAmount),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF9C27B0)
+                )
+            }
+        }
+    }
+}
         
         // Monthly Summary
         item {
