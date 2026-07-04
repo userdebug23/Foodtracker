@@ -19,33 +19,89 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     
-    - name: Create Gradle Wrapper Files
+    - name: Setup Android SDK
       run: |
-        # Create wrapper directory
+        echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+    
+    - name: Create Complete Project
+      run: |
+        # Create gradle wrapper
         mkdir -p gradle/wrapper
+        curl -s -o gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.2.0/gradle/wrapper/gradle-wrapper.jar
         
-        # Download gradle-wrapper.jar
-        curl -L -o gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v7.6.4/gradle/wrapper/gradle-wrapper.jar
-        
-        # Create gradle-wrapper.properties
         cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
         distributionBase=GRADLE_USER_HOME
         distributionPath=wrapper/dists
-        distributionUrl=https\://services.gradle.org/distributions/gradle-7.6.4-bin.zip
+        distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-bin.zip
         zipStoreBase=GRADLE_USER_HOME
         zipStorePath=wrapper/dists
         EOF
         
-        # Make gradlew executable
+        cat > gradlew << 'EOF'
+        #!/bin/sh
+        exec java -cp gradle/wrapper/gradle-wrapper.jar org.gradle.wrapper.GradleWrapperMain "$@"
+        EOF
         chmod +x gradlew
         
-        echo "✓ Gradle wrapper files created"
-        ls -la gradle/wrapper/
+        # Create root build.gradle.kts
+        cat > build.gradle.kts << 'EOF'
+        buildscript {
+            repositories {
+                google()
+                mavenCentral()
+            }
+            dependencies {
+                classpath("com.android.tools.build:gradle:8.2.0")
+                classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.20")
+            }
+        }
+        allprojects {
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        tasks.register("clean", Delete::class) {
+            delete(rootProject.buildDir)
+        }
+        EOF
+        
+        # Create settings.gradle.kts
+        cat > settings.gradle.kts << 'EOF'
+        pluginManagement {
+            repositories {
+                google()
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        }
+        dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        rootProject.name = "FoodTracker"
+        include(":app")
+        EOF
+        
+        # Create gradle.properties
+        cat > gradle.properties << 'EOF'
+        org.gradle.jvmargs=-Xmx2048m
+        android.useAndroidX=true
+        kotlin.code.style=official
+        android.enableJetifier=true
+        EOF
+        
+        # Create local.properties
+        echo "sdk.dir=/usr/local/lib/android/sdk" > local.properties
+        
+        echo "✓ Project created successfully"
     
     - name: Build APK
       run: |
-        export ANDROID_HOME=/usr/local/lib/android/sdk
-        echo "sdk.dir=$ANDROID_HOME" > local.properties
         ./gradlew assembleDebug --no-daemon --stacktrace
     
     - name: Upload APK
