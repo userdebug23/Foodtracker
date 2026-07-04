@@ -33,6 +33,14 @@ fun PaymentScreen() {
     var showAddDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedPaymentId by remember { mutableStateOf<Long?>(null) }
+    var isRefreshing by remember { mutableStateOf(false) }
+    
+    // Refresh handler
+    fun refresh() {
+        isRefreshing = true
+        viewModel.refresh()
+        isRefreshing = false
+    }
     
     LazyColumn(
         modifier = Modifier
@@ -40,7 +48,7 @@ fun PaymentScreen() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Header
+        // Header with refresh button
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -53,12 +61,25 @@ fun PaymentScreen() {
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
-                FloatingActionButton(
-                    onClick = { showAddDialog = true },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(48.dp)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("+", fontSize = 24.sp, color = Color.White)
+                    // Refresh Button
+                    IconButton(
+                        onClick = { refresh() },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Text("🔄", fontSize = 20.sp)
+                    }
+                    // Add Button
+                    FloatingActionButton(
+                        onClick = { showAddDialog = true },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Text("+", fontSize = 24.sp, color = Color.White)
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(4.dp))
@@ -143,14 +164,25 @@ fun PaymentScreen() {
             }
         }
         
-        // Payments List - ✅ FIXED: using items() with the list directly
+        // Payments List
         item {
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Payment History",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Payment History",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = "${state.payments.size} entries",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                )
+            }
             Spacer(modifier = Modifier.height(8.dp))
         }
         
@@ -187,7 +219,6 @@ fun PaymentScreen() {
                 }
             }
         } else {
-            // ✅ FIXED: Use items() with state.payments directly
             items(state.payments) { payment ->
                 PaymentItem(
                     payment = payment,
@@ -213,6 +244,8 @@ fun PaymentScreen() {
             onAddPayment = { amount, method, remarks, date ->
                 viewModel.addPayment(amount, method, remarks, date)
                 showAddDialog = false
+                // Refresh after dialog closes
+                refresh()
             }
         )
     }
@@ -231,6 +264,8 @@ fun PaymentScreen() {
                         selectedPaymentId?.let { viewModel.deletePayment(it) }
                         showDeleteDialog = false
                         selectedPaymentId = null
+                        // Refresh after delete
+                        refresh()
                     }
                 ) {
                     Text("Delete", color = Color(0xFFF44336))
