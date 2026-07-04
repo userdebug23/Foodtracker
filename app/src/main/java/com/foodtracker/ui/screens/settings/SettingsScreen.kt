@@ -386,39 +386,39 @@ fun SettingsSwitch(
 }
 
 @Composable
-fun DailyAmountDialog(
-    currentAmount: Double,
+fun DailyRateDialog(
+    currentRate: Double,
     onDismiss: () -> Unit,
     onSave: (Double) -> Unit
 ) {
-    var amountText by remember { mutableStateOf(String.format("%.0f", currentAmount)) }
+    var rateText by remember { mutableStateOf(String.format("%.0f", currentRate)) }
     
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Set Daily Budget") },
+        title = { Text("Set Daily Rate") },
         text = {
             Column {
                 Text(
-                    text = "Enter your daily food budget",
+                    text = "Enter your daily food rate",
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "This will be split equally between meals",
+                    text = "This is the cost for a full day (3 meals)",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 OutlinedTextField(
-                    value = amountText,
+                    value = rateText,
                     onValueChange = { 
                         if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) {
-                            amountText = it
+                            rateText = it
                         }
                     },
-                    label = { Text("Daily Amount (₹)") },
+                    label = { Text("Daily Rate (₹)") },
                     placeholder = { Text("Enter amount") },
                     singleLine = true,
                     leadingIcon = { Text("₹", fontSize = 18.sp) }
@@ -426,9 +426,9 @@ fun DailyAmountDialog(
                 
                 Spacer(modifier = Modifier.height(12.dp))
                 
-                val amount = amountText.toDoubleOrNull()
-                if (amount != null && amount > 0) {
-                    val perMeal = amount / 3
+                val rate = rateText.toDoubleOrNull()
+                if (rate != null && rate > 0) {
+                    val perMeal = rate / 3
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
@@ -479,9 +479,9 @@ fun DailyAmountDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    val amount = amountText.toDoubleOrNull()
-                    if (amount != null && amount > 0) {
-                        onSave(amount)
+                    val rate = rateText.toDoubleOrNull()
+                    if (rate != null && rate > 0) {
+                        onSave(rate)
                     }
                 }
             ) {
