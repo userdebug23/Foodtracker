@@ -22,7 +22,9 @@ import java.time.LocalDate
 import java.time.YearMonth
 
 @Composable
-fun DashboardScreen() {
+fun DashboardScreen(
+    selectedDate: LocalDate = LocalDate.now()  // ✅ Allow passing a date
+) {
     val context = LocalContext.current
     val viewModel: DashboardViewModel = viewModel(
         factory = DashboardViewModel.provideFactory(context)
@@ -30,16 +32,16 @@ fun DashboardScreen() {
     
     val state by viewModel.state.collectAsState()
     
-    // ✅ Auto-refresh when screen is displayed (each time it's composed)
-    LaunchedEffect(Unit) {
-        viewModel.refresh()
+    // ✅ Refresh when selected date changes
+    LaunchedEffect(selectedDate) {
+        viewModel.refresh(selectedDate)
     }
     
-    // ✅ Auto-refresh every 30 seconds (optional)
+    // Auto-refresh every 30 seconds
     LaunchedEffect(Unit) {
         while (true) {
-            kotlinx.coroutines.delay(30000) // 30 seconds
-            viewModel.refresh()
+            kotlinx.coroutines.delay(30000)
+            viewModel.refresh(selectedDate)
         }
     }
     
@@ -58,20 +60,23 @@ fun DashboardScreen() {
             ) {
                 Column {
                     Text(
-                        text = "📊 Dashboard",
+                        text = if (selectedDate == LocalDate.now()) "📊 Dashboard" else "📊 ${DateUtils.formatDate(selectedDate)}",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = DateUtils.formatMonthYear(DateUtils.getCurrentMonth()),
+                        text = if (selectedDate == LocalDate.now()) 
+                            DateUtils.formatMonthYear(DateUtils.getCurrentMonth()) 
+                        else 
+                            DateUtils.formatDate(selectedDate),
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                     )
                 }
                 // Refresh button
                 IconButton(
-                    onClick = { viewModel.refresh() },
+                    onClick = { viewModel.refresh(selectedDate) },
                     modifier = Modifier.size(36.dp)
                 ) {
                     Text("🔄", fontSize = 20.sp)
@@ -80,7 +85,7 @@ fun DashboardScreen() {
             Spacer(modifier = Modifier.height(8.dp))
         }
         
-        // Today's Meals Card - VIEW ONLY (no toggles)
+        // Today's Meals Card
         item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -93,7 +98,7 @@ fun DashboardScreen() {
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = "Today's Meals",
+                        text = if (selectedDate == LocalDate.now()) "Today's Meals" else "Meals on ${DateUtils.formatDate(selectedDate)}",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -124,7 +129,7 @@ fun DashboardScreen() {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Today's Expense",
+                            text = "Daily Expense",
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                         )
                         Text(
@@ -139,7 +144,7 @@ fun DashboardScreen() {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Total Meals Today",
+                            text = "Total Meals",
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                         )
                         Text(
@@ -151,13 +156,12 @@ fun DashboardScreen() {
             }
         }
         
-        // Balance & Remaining Days Cards
+        // Balance & Remaining Days
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Balance Card
                 Card(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
@@ -189,7 +193,6 @@ fun DashboardScreen() {
                     }
                 }
                 
-                // Remaining Days Card
                 Card(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
@@ -220,7 +223,7 @@ fun DashboardScreen() {
             }
         }
         
-        // Monthly Summary (Compact)
+        // Monthly Summary
         item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
