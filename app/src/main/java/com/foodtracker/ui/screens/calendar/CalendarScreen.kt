@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -171,7 +172,7 @@ fun CalendarScreen() {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        // Legend items with counts
+                        // FIXED: Using partialDays instead of absentDays for Partial
                         LegendItemWithCount(
                             label = "Present",
                             count = state.presentDays.toString(),
@@ -179,7 +180,7 @@ fun CalendarScreen() {
                         )
                         LegendItemWithCount(
                             label = "Partial",
-                            count = (state.absentDays).toString(),
+                            count = state.partialDays.toString(),  // ✅ FIXED
                             color = Color(0xFFFFC107)
                         )
                         LegendItemWithCount(
