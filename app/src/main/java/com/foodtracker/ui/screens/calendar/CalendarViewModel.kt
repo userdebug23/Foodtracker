@@ -8,7 +8,6 @@ import com.foodtracker.data.entities.FoodEntry
 import com.foodtracker.data.repository.FoodRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -22,8 +21,6 @@ class CalendarViewModel(private val context: Context) : ViewModel() {
     private val repository = FoodRepository(database.foodEntryDao())
     
     private val monthFormatter = DateTimeFormatter.ofPattern("MMMM yyyy")
-    private val yearMonthFormatter = DateTimeFormatter.ofPattern("yyyy-MM")
-    
     private var currentMonth = YearMonth.now()
     
     init {
@@ -53,22 +50,20 @@ class CalendarViewModel(private val context: Context) : ViewModel() {
                 val entries = repository.getEntriesBetween(startDate, endDate)
                 val entryMap = entries.associateBy { it.date }
                 
-                // Build calendar days
+                // Build calendar grid
                 val firstDayOfMonth = yearMonth.atDay(1)
-                val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value // 1=Monday, 7=Sunday
-                
-                // Adjust for Monday start (1=Monday)
-                val daysFromPreviousMonth = if (firstDayOfWeek == 7) 0 else firstDayOfWeek - 1
+                val dayOfWeek = firstDayOfMonth.dayOfWeek.value // 1=Monday, 7=Sunday
+                val startOffset = if (dayOfWeek == 7) 0 else dayOfWeek - 1
                 
                 val calendarDays = mutableListOf<CalendarDay>()
                 
                 // Previous month days
                 val previousMonth = yearMonth.minusMonths(1)
                 val daysInPreviousMonth = previousMonth.lengthOfMonth()
-                val startOffset = daysInPreviousMonth - daysFromPreviousMonth + 1
+                val startDay = daysInPreviousMonth - startOffset + 1
                 
-                for (i in 0 until daysFromPreviousMonth) {
-                    val day = startOffset + i
+                for (i in 0 until startOffset) {
+                    val day = startDay + i
                     val date = previousMonth.atDay(day)
                     calendarDays.add(
                         CalendarDay(
@@ -117,15 +112,15 @@ class CalendarViewModel(private val context: Context) : ViewModel() {
                     )
                 }
                 
-                // Calculate monthly stats
-                val currentMonthEntries = entries.filter { it.date.month == yearMonth.month && it.date.year == yearMonth.year }
+                // Calculate stats
+                val currentMonthEntries = entries.filter { 
+                    it.date.month == yearMonth.month && it.date.year == yearMonth.year 
+                }
                 val totalMeals = currentMonthEntries.sumOf { it.mealCount }
                 val totalExpense = currentMonthEntries.sumOf { it.dailyExpense }
-                val daysWithMeals = currentMonthEntries.count { it.mealCount > 0 }
-                val presentDays = daysWithMeals
-                val absentDays = daysInMonth - daysWithMeals
+                val presentDays = currentMonthEntries.count { it.mealCount > 0 }
+                val absentDays = daysInMonth - presentDays
                 
-                // Group by week for the calendar
                 val weeks = calendarDays.chunked(7)
                 
                 _state.update {
@@ -143,9 +138,7 @@ class CalendarViewModel(private val context: Context) : ViewModel() {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                _state.update {
-                    it.copy(isLoading = false)
-                }
+                _state.update { it.copy(isLoading = false) }
             }
         }
     }
@@ -183,5 +176,3 @@ data class CalendarDay(
     val mealCount: Int,
     val dailyExpense: Double = 0.0
 )
-
-data class DayStatus(val color: androidx.compose.ui.graphics.Color, val label: String)
