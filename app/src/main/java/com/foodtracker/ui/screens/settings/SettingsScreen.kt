@@ -97,9 +97,9 @@ fun SettingsScreen() {
         
         // In the SettingsScreen, replace the Daily Amount section with:
 
-// Daily Rate Section
+// In SettingsScreen, add Meal Rate setting:
 item {
-    SettingsSection(title = "💰 Daily Rate") {
+    SettingsSection(title = "💰 Meal Rate") {
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
@@ -117,12 +117,12 @@ item {
                 ) {
                     Column {
                         Text(
-                            text = "Daily Rate",
+                            text = "Per Meal Rate",
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                         )
                         Text(
-                            text = "₹${String.format("%.2f", dailyRate)}",
+                            text = "₹${String.format("%.2f", mealRate)}",
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -138,10 +138,10 @@ item {
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 
                 Text(
-                    text = "This is the cost per full day (3 meals)",
+                    text = "Daily Rate: ₹${String.format("%.2f", mealRate * 3)} (3 meals)",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                 )
