@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -19,8 +18,6 @@ import com.foodtracker.ui.screens.settings.SettingsScreen
 fun NavGraph(
     navController: NavHostController = rememberNavController()
 ) {
-    val context = LocalContext.current
-    
     Scaffold(
         bottomBar = {
             BottomNavigationBar(navController = navController)
