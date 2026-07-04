@@ -18,6 +18,11 @@ android {
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+packaging {
+    resources {
+        excludes += "/META-INF/{AL2.0,LGPL2.1}"
+    }
+}
     }
 
     buildTypes {
@@ -86,6 +91,14 @@ dependencies {
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+// Room
+implementation("androidx.room:room-common:2.6.1")
+
+// Lifecycle
+implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+
+// Hilt
+kapt("androidx.hilt:hilt-compiler:1.2.0")
 }
 
 kapt {
