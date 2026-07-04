@@ -120,8 +120,8 @@ fun EditMealDialog(
                     
                     val mealCount = NumberUtils.calculateMealCount(breakfast, lunch, dinner)
                     // Calculate expense using the meal rate
-                    val dailyExpense = runBlocking {
-                        NumberUtils.calculateDailyExpense(context, breakfast, lunch, dinner)
+                   // Replace the dailyExpense calculation with:
+val dailyExpense = NumberUtils.calculateDailyExpenseSync(context, breakfast, lunch, dinner)
                     }
                     
                     Card(
