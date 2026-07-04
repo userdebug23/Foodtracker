@@ -34,6 +34,11 @@ fun PaymentScreen() {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedPaymentId by remember { mutableStateOf<Long?>(null) }
     
+    // ✅ FIX: Refresh when screen is first displayed
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+    }
+    
     fun refresh() {
         viewModel.refresh()
     }
@@ -238,6 +243,8 @@ fun PaymentScreen() {
             onAddPayment = { amount, method, remarks, date ->
                 viewModel.addPayment(amount, method, remarks, date)
                 showAddDialog = false
+                // ✅ Refresh after adding
+                viewModel.refresh()
             }
         )
     }
@@ -253,7 +260,11 @@ fun PaymentScreen() {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        selectedPaymentId?.let { viewModel.deletePayment(it) }
+                        selectedPaymentId?.let { 
+                            viewModel.deletePayment(it)
+                            // ✅ Refresh after deleting
+                            viewModel.refresh()
+                        }
                         showDeleteDialog = false
                         selectedPaymentId = null
                     }
