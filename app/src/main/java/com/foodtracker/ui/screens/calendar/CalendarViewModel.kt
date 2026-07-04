@@ -112,14 +112,15 @@ class CalendarViewModel(private val context: Context) : ViewModel() {
                     )
                 }
                 
-                // Calculate stats
+                // Calculate stats - FIXED
                 val currentMonthEntries = entries.filter { 
                     it.date.month == yearMonth.month && it.date.year == yearMonth.year 
                 }
                 val totalMeals = currentMonthEntries.sumOf { it.mealCount }
                 val totalExpense = currentMonthEntries.sumOf { it.dailyExpense }
-                val presentDays = currentMonthEntries.count { it.mealCount > 0 }
-                val absentDays = daysInMonth - presentDays
+                val presentDays = currentMonthEntries.count { it.mealCount == 3 }  // All 3 meals
+                val partialDays = currentMonthEntries.count { it.mealCount in 1..2 }  // 1-2 meals
+                val absentDays = daysInMonth - presentDays - partialDays  // No meals
                 
                 val weeks = calendarDays.chunked(7)
                 
@@ -132,6 +133,7 @@ class CalendarViewModel(private val context: Context) : ViewModel() {
                         totalMeals = totalMeals,
                         totalExpense = totalExpense,
                         presentDays = presentDays,
+                        partialDays = partialDays,
                         absentDays = absentDays,
                         isLoading = false
                     )
@@ -163,6 +165,7 @@ data class CalendarState(
     val totalMeals: Int = 0,
     val totalExpense: Double = 0.0,
     val presentDays: Int = 0,
+    val partialDays: Int = 0,  // ADD THIS
     val absentDays: Int = 0,
     val isLoading: Boolean = true
 )
