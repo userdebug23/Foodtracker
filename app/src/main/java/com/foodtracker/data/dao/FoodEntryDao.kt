@@ -14,26 +14,26 @@ interface FoodEntryDao {
     suspend fun insertEntry(entry: FoodEntry): Long
     
     @Query("SELECT * FROM food_entries WHERE date = :date")
-    suspend fun getEntryByDate(date: LocalDate): FoodEntry?
+    suspend fun getEntryByDate(date: String): FoodEntry?
     
     @Query("SELECT * FROM food_entries WHERE date BETWEEN :startDate AND :endDate ORDER BY date ASC")
-    suspend fun getEntriesBetween(startDate: LocalDate, endDate: LocalDate): List<FoodEntry>
+    suspend fun getEntriesBetween(startDate: String, endDate: String): List<FoodEntry>
     
-    @Query("SELECT * FROM food_entries WHERE strftime('%Y-%m', date) = :yearMonth ORDER BY date ASC")
+    @Query("SELECT * FROM food_entries WHERE substr(date, 1, 7) = :yearMonth ORDER BY date ASC")
     suspend fun getEntriesByMonth(yearMonth: String): List<FoodEntry>
     
     @Query("SELECT COUNT(*) FROM food_entries WHERE date BETWEEN :startDate AND :endDate AND breakfast = 1")
-    suspend fun getBreakfastCount(startDate: LocalDate, endDate: LocalDate): Int
+    suspend fun getBreakfastCount(startDate: String, endDate: String): Int
     
     @Query("SELECT COUNT(*) FROM food_entries WHERE date BETWEEN :startDate AND :endDate AND lunch = 1")
-    suspend fun getLunchCount(startDate: LocalDate, endDate: LocalDate): Int
+    suspend fun getLunchCount(startDate: String, endDate: String): Int
     
     @Query("SELECT COUNT(*) FROM food_entries WHERE date BETWEEN :startDate AND :endDate AND dinner = 1")
-    suspend fun getDinnerCount(startDate: LocalDate, endDate: LocalDate): Int
+    suspend fun getDinnerCount(startDate: String, endDate: String): Int
     
     @Query("SELECT SUM(meal_count) FROM food_entries WHERE date BETWEEN :startDate AND :endDate")
-    suspend fun getTotalMeals(startDate: LocalDate, endDate: LocalDate): Int
+    suspend fun getTotalMeals(startDate: String, endDate: String): Int
     
     @Query("SELECT SUM(daily_expense) FROM food_entries WHERE date BETWEEN :startDate AND :endDate")
-    suspend fun getTotalExpense(startDate: LocalDate, endDate: LocalDate): Double
+    suspend fun getTotalExpense(startDate: String, endDate: String): Double
 }
