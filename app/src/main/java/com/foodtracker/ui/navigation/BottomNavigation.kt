@@ -30,10 +30,13 @@ fun BottomNavigationBar(
                 selected = currentRoute == screen.route,
                 onClick = {
                     navController.navigate(screen.route) {
+                        // Pop up to the start destination to avoid multiple copies
                         popUpTo(Screen.Dashboard.route) {
                             saveState = true
                         }
+                        // Avoid multiple copies of the same destination
                         launchSingleTop = true
+                        // Restore state when reselecting a previously selected item
                         restoreState = true
                     }
                 },
@@ -43,7 +46,7 @@ fun BottomNavigationBar(
                         contentDescription = screen.route
                     )
                 },
-                label = { Text(screen.route.capitalize()) }
+                label = { Text(screen.route.replaceFirstChar { it.uppercase() }) }
             )
         }
     }
