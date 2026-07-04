@@ -19,9 +19,8 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.launch
 
-// DataStore extension
-private val android.content.Context.dataStore by preferencesDataStore(name = "food_settings")
-private val DAILY_AMOUNT_KEY = doublePreferencesKey("daily_amount")
+private val Context.dataStore by preferencesDataStore(name = "food_settings")
+private val MEAL_RATE_KEY = doublePreferencesKey("meal_rate")
 private val DARK_THEME_KEY = booleanPreferencesKey("dark_theme")
 
 @Composable
@@ -29,17 +28,15 @@ fun SettingsScreen() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
-    // Read settings from DataStore
-    var dailyAmount by remember { mutableStateOf(160.0) }
+    var mealRate by remember { mutableStateOf(50.0) }
     var isDarkTheme by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
     var showDialog by remember { mutableStateOf(false) }
     
-    // Load settings
     LaunchedEffect(Unit) {
         try {
             context.dataStore.data.collect { preferences ->
-                dailyAmount = preferences[DAILY_AMOUNT_KEY] ?: 160.0
+                mealRate = preferences[MEAL_RATE_KEY] ?: 50.0
                 isDarkTheme = preferences[DARK_THEME_KEY] ?: false
                 isLoading = false
             }
@@ -48,13 +45,13 @@ fun SettingsScreen() {
         }
     }
     
-    fun saveDailyAmount(amount: Double) {
+    fun saveMealRate(rate: Double) {
         scope.launch {
             context.dataStore.edit { preferences ->
-                preferences[DAILY_AMOUNT_KEY] = amount
+                preferences[MEAL_RATE_KEY] = rate
             }
-            dailyAmount = amount
-            Toast.makeText(context, "Daily amount updated to ₹${String.format("%.2f", amount)}", Toast.LENGTH_SHORT).show()
+            mealRate = rate
+            Toast.makeText(context, "Meal rate updated to ₹${String.format("%.2f", rate)}", Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -66,12 +63,11 @@ fun SettingsScreen() {
             }
             isDarkTheme = newTheme
             Toast.makeText(context, if (newTheme) "Dark mode enabled" else "Light mode enabled", Toast.LENGTH_SHORT).show()
-            // Recreate activity to apply theme
             (context as? androidx.activity.ComponentActivity)?.recreate()
         }
     }
     
-    val perMealRate = dailyAmount / 3
+    val dailyRate = mealRate * 3
     
     LazyColumn(
         modifier = Modifier
@@ -88,79 +84,65 @@ fun SettingsScreen() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Configure your daily food budget",
+                text = "Configure your meal and app settings",
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
         
-        // In the SettingsScreen, replace the Daily Amount section with:
-
-// In SettingsScreen, add Meal Rate setting:
-item {
-    SettingsSection(title = "💰 Meal Rate") {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-            )
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Row(
+        item {
+            SettingsSection(title = "💰 Meal Rate") {
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                    )
                 ) {
-                    Column {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Per Meal Rate",
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                                )
+                                Text(
+                                    text = "₹${String.format("%.2f", mealRate)}",
+                                    fontSize = 28.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Button(
+                                onClick = { showDialog = true },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary
+                                )
+                            ) {
+                                Text("Change")
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
                         Text(
-                            text = "Per Meal Rate",
-                            fontSize = 14.sp,
+                            text = "Daily Rate: ₹${String.format("%.2f", dailyRate)} (3 meals)",
+                            fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                         )
-                        Text(
-                            text = "₹${String.format("%.2f", mealRate)}",
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    Button(
-                        onClick = { showDialog = true },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Text("Change")
                     }
                 }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = "Daily Rate: ₹${String.format("%.2f", mealRate * 3)} (3 meals)",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                )
-            }
-        }
-    }
-}
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                SettingsItem(
-                    icon = "📊",
-                    title = "Per Meal Rate",
-                    subtitle = "₹${String.format("%.2f", perMealRate)} per meal"
-                )
             }
         }
         
-        // Theme Section
         item {
             SettingsSection(title = "🎨 Appearance") {
                 SettingsSwitch(
@@ -173,7 +155,6 @@ item {
             }
         }
         
-        // Data Management Section
         item {
             SettingsSection(title = "💾 Data Management") {
                 SettingsItem(
@@ -210,7 +191,6 @@ item {
             }
         }
         
-        // About Section
         item {
             SettingsSection(title = "📱 About") {
                 SettingsItem(
@@ -232,39 +212,14 @@ item {
         item { Spacer(modifier = Modifier.height(16.dp)) }
     }
     
-    // Daily Amount Dialog
     if (showDialog) {
-        DailyAmountDialog(
-            currentAmount = dailyAmount,
+        MealRateDialog(
+            currentRate = mealRate,
             onDismiss = { showDialog = false },
-            onSave = { newAmount ->
-                saveDailyAmount(newAmount)
+            onSave = { newRate ->
+                saveMealRate(newRate)
                 showDialog = false
             }
-        )
-    }
-}
-
-@Composable
-fun MealBreakdownItem(
-    label: String,
-    amount: Double,
-    icon: String
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(icon, fontSize = 20.sp)
-        Text(
-            text = "₹${String.format("%.2f", amount)}",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
         )
     }
 }
@@ -386,26 +341,26 @@ fun SettingsSwitch(
 }
 
 @Composable
-fun DailyRateDialog(
+fun MealRateDialog(
     currentRate: Double,
     onDismiss: () -> Unit,
     onSave: (Double) -> Unit
 ) {
-    var rateText by remember { mutableStateOf(String.format("%.0f", currentRate)) }
+    var rateText by remember { mutableStateOf(String.format("%.2f", currentRate)) }
     
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Set Daily Rate") },
+        title = { Text("Set Meal Rate") },
         text = {
             Column {
                 Text(
-                    text = "Enter your daily food rate",
+                    text = "Enter the cost per meal",
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "This is the cost for a full day (3 meals)",
+                    text = "Daily rate will be: 3 × meal rate",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
                 )
@@ -418,8 +373,8 @@ fun DailyRateDialog(
                             rateText = it
                         }
                     },
-                    label = { Text("Daily Rate (₹)") },
-                    placeholder = { Text("Enter amount") },
+                    label = { Text("Meal Rate (₹)") },
+                    placeholder = { Text("Enter amount per meal") },
                     singleLine = true,
                     leadingIcon = { Text("₹", fontSize = 18.sp) }
                 )
@@ -428,7 +383,7 @@ fun DailyRateDialog(
                 
                 val rate = rateText.toDoubleOrNull()
                 if (rate != null && rate > 0) {
-                    val perMeal = rate / 3
+                    val dailyRate = rate * 3
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
@@ -444,32 +399,22 @@ fun DailyRateDialog(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("🌅", fontSize = 16.sp)
                                 Text(
-                                    text = "₹${String.format("%.2f", perMeal)}",
+                                    text = "₹${String.format("%.2f", rate)}",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
-                                Text("Breakfast", fontSize = 10.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
+                                Text("Per Meal", fontSize = 10.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("☀️", fontSize = 16.sp)
+                                Text("📅", fontSize = 16.sp)
                                 Text(
-                                    text = "₹${String.format("%.2f", perMeal)}",
+                                    text = "₹${String.format("%.2f", dailyRate)}",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
-                                Text("Lunch", fontSize = 10.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
-                            }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("🌙", fontSize = 16.sp)
-                                Text(
-                                    text = "₹${String.format("%.2f", perMeal)}",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Text("Dinner", fontSize = 10.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
+                                Text("Daily Rate", fontSize = 10.sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
                             }
                         }
                     }
