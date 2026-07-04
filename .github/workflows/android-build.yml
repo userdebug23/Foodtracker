@@ -44,7 +44,7 @@ jobs:
         EOF
         chmod +x gradlew
         
-        # Create settings.gradle.kts (WITHOUT repositoryMode restriction)
+        # Create settings.gradle.kts
         cat > settings.gradle.kts << 'EOF'
         pluginManagement {
             repositories {
@@ -63,7 +63,7 @@ jobs:
         include(":app")
         EOF
         
-        # Create root build.gradle.kts (SIMPLIFIED)
+        # Create root build.gradle.kts
         cat > build.gradle.kts << 'EOF'
         buildscript {
             repositories {
@@ -96,7 +96,7 @@ jobs:
         android.enableJetifier=true
         EOF
         
-        # Create app/build.gradle.kts (SIMPLIFIED)
+        # Create app/build.gradle.kts
         mkdir -p app
         cat > app/build.gradle.kts << 'EOF'
         plugins {
@@ -163,12 +163,122 @@ jobs:
         }
         EOF
         
+        # Create proguard file
+        touch app/proguard-rules.pro
+        
+        # Create AndroidManifest.xml (without icon references)
+        mkdir -p app/src/main
+        cat > app/src/main/AndroidManifest.xml << 'EOF'
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+        
+            <application
+                android:name=".FoodTrackerApplication"
+                android:allowBackup="true"
+                android:label="@string/app_name"
+                android:supportsRtl="true"
+                android:theme="@style/Theme.FoodTracker">
+                <activity
+                    android:name=".MainActivity"
+                    android:exported="true"
+                    android:theme="@style/Theme.FoodTracker">
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                    </intent-filter>
+                </activity>
+            </application>
+        
+        </manifest>
+        EOF
+        
+        # Create values folder and resources
+        mkdir -p app/src/main/res/values
+        
+        cat > app/src/main/res/values/strings.xml << 'EOF'
+        <resources>
+            <string name="app_name">Food Tracker</string>
+        </resources>
+        EOF
+        
+        cat > app/src/main/res/values/colors.xml << 'EOF'
+        <?xml version="1.0" encoding="utf-8"?>
+        <resources>
+            <color name="primary_green">#2E7D32</color>
+            <color name="white">#FFFFFF</color>
+            <color name="black">#000000</color>
+        </resources>
+        EOF
+        
+        cat > app/src/main/res/values/themes.xml << 'EOF'
+        <resources>
+            <style name="Theme.FoodTracker" parent="android:Theme.Material.Light.NoActionBar">
+                <item name="android:statusBarColor">@color/primary_green</item>
+            </style>
+        </resources>
+        EOF
+        
+        # Create Java source files
+        mkdir -p app/src/main/java/com/foodtracker
+        
+        cat > app/src/main/java/com/foodtracker/FoodTrackerApplication.kt << 'EOF'
+        package com.foodtracker
+        
+        import android.app.Application
+        
+        class FoodTrackerApplication : Application() {
+            override fun onCreate() {
+                super.onCreate()
+            }
+        }
+        EOF
+        
+        cat > app/src/main/java/com/foodtracker/MainActivity.kt << 'EOF'
+        package com.foodtracker
+        
+        import android.os.Bundle
+        import androidx.activity.ComponentActivity
+        import androidx.activity.compose.setContent
+        import androidx.compose.foundation.layout.*
+        import androidx.compose.material3.*
+        import androidx.compose.runtime.*
+        import androidx.compose.ui.Alignment
+        import androidx.compose.ui.Modifier
+        import androidx.compose.ui.text.font.FontWeight
+        import androidx.compose.ui.unit.dp
+        import androidx.compose.ui.unit.sp
+        
+        class MainActivity : ComponentActivity() {
+            override fun onCreate(savedInstanceState: Bundle?) {
+                super.onCreate(savedInstanceState)
+                setContent {
+                    MaterialTheme {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "🍽️ Food Tracker",
+                                fontSize = 32.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "App is ready!",
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        EOF
+        
         # Create local.properties
         echo "sdk.dir=/usr/local/lib/android/sdk" > local.properties
-        
-        # Create empty proguard file
-        mkdir -p app
-        touch app/proguard-rules.pro
         
         echo "✓ Project created successfully"
     
