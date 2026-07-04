@@ -18,7 +18,7 @@ class PaymentViewModel(private val context: Context) : ViewModel() {
     val state: StateFlow<PaymentState> = _state.asStateFlow()
     
     private val database = AppDatabase.getInstance(context)
-    private val paymentRepository = PaymentRepository(database.paymentDao())
+    private val paymentRepository = PaymentRepository(database.paymentDao())  // ✅ FIXED
     private val foodRepository = FoodRepository(database.foodEntryDao())
     
     init {
