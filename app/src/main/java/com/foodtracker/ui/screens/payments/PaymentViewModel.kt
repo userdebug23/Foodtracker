@@ -1,6 +1,7 @@
 package com.foodtracker.ui.screens.payments
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foodtracker.data.database.AppDatabase
@@ -28,7 +29,10 @@ class PaymentViewModel(private val context: Context) : ViewModel() {
     fun loadPayments() {
         viewModelScope.launch {
             try {
+                Log.d("PaymentVM", "Loading payments...")
                 val allPayments = paymentRepository.getAllPayments()
+                Log.d("PaymentVM", "Found ${allPayments.size} payments")
+                
                 val completedPayments = allPayments.filter { it.status == "Completed" }
                 val pendingPayments = allPayments.filter { it.status == "Pending" }
                 val overduePayments = allPayments.filter { 
@@ -60,6 +64,7 @@ class PaymentViewModel(private val context: Context) : ViewModel() {
                     )
                 }
             } catch (e: Exception) {
+                Log.e("PaymentVM", "Error loading payments: ${e.message}")
                 e.printStackTrace()
                 _state.update { it.copy(isLoading = false) }
             }
@@ -69,6 +74,8 @@ class PaymentViewModel(private val context: Context) : ViewModel() {
     fun addPayment(amount: Double, paymentMethod: String, remarks: String, paymentDate: LocalDate) {
         viewModelScope.launch {
             try {
+                Log.d("PaymentVM", "Adding payment: amount=$amount, method=$paymentMethod, date=$paymentDate")
+                
                 val today = LocalDate.now()
                 val isScheduled = paymentDate.isAfter(today)
                 val status = if (isScheduled) "Pending" else "Completed"
@@ -81,10 +88,14 @@ class PaymentViewModel(private val context: Context) : ViewModel() {
                     isScheduled = isScheduled,
                     status = status
                 )
-                paymentRepository.addPayment(payment)
-                // ✅ Force refresh after adding
+                
+                val id = paymentRepository.addPayment(payment)
+                Log.d("PaymentVM", "Payment added with ID: $id")
+                
+                // Reload payments
                 loadPayments()
             } catch (e: Exception) {
+                Log.e("PaymentVM", "Error adding payment: ${e.message}")
                 e.printStackTrace()
             }
         }
@@ -93,10 +104,11 @@ class PaymentViewModel(private val context: Context) : ViewModel() {
     fun markPaymentAsCompleted(paymentId: Long) {
         viewModelScope.launch {
             try {
+                Log.d("PaymentVM", "Marking payment as completed: $paymentId")
                 paymentRepository.markPaymentAsCompleted(paymentId)
-                // ✅ Force refresh after marking as completed
                 loadPayments()
             } catch (e: Exception) {
+                Log.e("PaymentVM", "Error marking payment as completed: ${e.message}")
                 e.printStackTrace()
             }
         }
@@ -105,16 +117,18 @@ class PaymentViewModel(private val context: Context) : ViewModel() {
     fun deletePayment(paymentId: Long) {
         viewModelScope.launch {
             try {
+                Log.d("PaymentVM", "Deleting payment: $paymentId")
                 paymentRepository.deletePayment(paymentId)
-                // ✅ Force refresh after deleting
                 loadPayments()
             } catch (e: Exception) {
+                Log.e("PaymentVM", "Error deleting payment: ${e.message}")
                 e.printStackTrace()
             }
         }
     }
     
     fun refresh() {
+        Log.d("PaymentVM", "Manual refresh triggered")
         loadPayments()
     }
     
