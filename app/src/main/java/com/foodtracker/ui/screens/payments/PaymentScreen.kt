@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -32,8 +33,6 @@ fun PaymentScreen() {
     var showAddDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedPaymentId by remember { mutableStateOf<Long?>(null) }
-    
-    val dateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
     
     LazyColumn(
         modifier = Modifier
@@ -144,7 +143,7 @@ fun PaymentScreen() {
             }
         }
         
-        // Payments List
+        // Payments List - ✅ FIXED: using items() with the list directly
         item {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -188,6 +187,7 @@ fun PaymentScreen() {
                 }
             }
         } else {
+            // ✅ FIXED: Use items() with state.payments directly
             items(state.payments) { payment ->
                 PaymentItem(
                     payment = payment,
