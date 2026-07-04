@@ -6,16 +6,19 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import android.content.Context
 import com.foodtracker.data.dao.FoodEntryDao
+import com.foodtracker.data.dao.PaymentDao
 import com.foodtracker.data.entities.FoodEntry
+import com.foodtracker.data.entities.PaymentEntity
 
 @Database(
-    entities = [FoodEntry::class],
-    version = 1,
+    entities = [FoodEntry::class, PaymentEntity::class],
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun foodEntryDao(): FoodEntryDao
+    abstract fun paymentDao(): PaymentDao  // ✅ ADD THIS LINE
     
     companion object {
         @Volatile
@@ -27,7 +30,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "food_tracker_database"
-                ).build()
+                ).fallbackToDestructiveMigration().build()
                 INSTANCE = instance
                 instance
             }
