@@ -30,13 +30,13 @@ interface PaymentDao {
     suspend fun getPendingPayments(date: LocalDate): List<PaymentEntity>
     
     @Query("SELECT SUM(amount) FROM payments WHERE payment_date BETWEEN :startDate AND :endDate AND status = 'Completed'")
-    suspend fun getTotalCompletedPaymentsBetween(startDate: LocalDate, endDate: LocalDate): Double
+    suspend fun getTotalCompletedPaymentsBetween(startDate: LocalDate, endDate: LocalDate): Double?
     
     @Query("SELECT SUM(amount) FROM payments WHERE status = 'Completed'")
-    suspend fun getTotalCompletedPayments(): Double
+    suspend fun getTotalCompletedPayments(): Double?
     
     @Query("SELECT SUM(amount) FROM payments WHERE status = 'Pending' AND payment_date <= :date")
-    suspend fun getOverduePayments(date: LocalDate): Double
+    suspend fun getOverduePayments(date: LocalDate): Double?
     
     @Query("DELETE FROM payments WHERE id = :paymentId")
     suspend fun deletePayment(paymentId: Long)
