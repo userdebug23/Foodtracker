@@ -1,6 +1,7 @@
 package com.foodtracker.ui.screens.dashboard
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foodtracker.data.database.AppDatabase
@@ -24,122 +25,58 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
     private val paymentRepository = PaymentRepository(database.paymentDao())
     
     init {
-        loadDashboard()
+        refresh(LocalDate.now())
     }
     
-    fun toggleMeal(mealType: String) {
-        viewModelScope.launch {
-            try {
-                val today = LocalDate.now()
-                val currentEntry = foodRepository.getEntry(today)
-                val mealRate = NumberUtils.getMealRate(context)
-                
-                val newEntry = when (mealType) {
-                    "breakfast" -> {
-                        val newBreakfast = !(currentEntry?.breakfast ?: false)
-                        val mealCount = NumberUtils.calculateMealCount(
-                            newBreakfast,
-                            currentEntry?.lunch ?: false,
-                            currentEntry?.dinner ?: false
-                        )
-                        val dailyExpense = mealCount * mealRate
-                        
-                        FoodEntry(
-                            id = currentEntry?.id ?: 0,
-                            date = today,
-                            dayOfWeek = DateUtils.getDayOfWeek(today),
-                            breakfast = newBreakfast,
-                            lunch = currentEntry?.lunch ?: false,
-                            dinner = currentEntry?.dinner ?: false,
-                            mealCount = mealCount,
-                            dailyExpense = dailyExpense
-                        )
-                    }
-                    "lunch" -> {
-                        val newLunch = !(currentEntry?.lunch ?: false)
-                        val mealCount = NumberUtils.calculateMealCount(
-                            currentEntry?.breakfast ?: false,
-                            newLunch,
-                            currentEntry?.dinner ?: false
-                        )
-                        val dailyExpense = mealCount * mealRate
-                        
-                        FoodEntry(
-                            id = currentEntry?.id ?: 0,
-                            date = today,
-                            dayOfWeek = DateUtils.getDayOfWeek(today),
-                            breakfast = currentEntry?.breakfast ?: false,
-                            lunch = newLunch,
-                            dinner = currentEntry?.dinner ?: false,
-                            mealCount = mealCount,
-                            dailyExpense = dailyExpense
-                        )
-                    }
-                    "dinner" -> {
-                        val newDinner = !(currentEntry?.dinner ?: false)
-                        val mealCount = NumberUtils.calculateMealCount(
-                            currentEntry?.breakfast ?: false,
-                            currentEntry?.lunch ?: false,
-                            newDinner
-                        )
-                        val dailyExpense = mealCount * mealRate
-                        
-                        FoodEntry(
-                            id = currentEntry?.id ?: 0,
-                            date = today,
-                            dayOfWeek = DateUtils.getDayOfWeek(today),
-                            breakfast = currentEntry?.breakfast ?: false,
-                            lunch = currentEntry?.lunch ?: false,
-                            dinner = newDinner,
-                            mealCount = mealCount,
-                            dailyExpense = dailyExpense
-                        )
-                    }
-                    else -> return@launch
-                }
-                
-                foodRepository.saveEntry(newEntry)
-                loadDashboard()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+    // ✅ Updated to accept a date parameter
+    fun refresh(selectedDate: LocalDate = LocalDate.now()) {
+        loadDashboard(selectedDate)
     }
     
-    fun loadDashboard() {
+    private fun loadDashboard(selectedDate: LocalDate) {
         viewModelScope.launch {
             try {
-                val today = LocalDate.now()
-                val currentMonth = YearMonth.now()
                 val dailyRate = NumberUtils.getDailyRate(context)
+                val currentMonth = YearMonth.from(selectedDate)
                 
-                val todayEntry = foodRepository.getEntry(today)
+                Log.d("DashboardVM", "Loading for date: $selectedDate")
+                
+                // Get entry for selected date
+                val selectedEntry = foodRepository.getEntry(selectedDate)
+                
+                // Get current month summary
                 val summary = foodRepository.getMonthlySummary(currentMonth)
-                val recentEntries = foodRepository.getEntriesBetween(today.minusDays(6), today)
                 
-                // ✅ Get all entries (all time) for total expense
+                // Get recent entries (7 days around selected date)
+                val startDate = selectedDate.minusDays(7)
+                val endDate = selectedDate.plusDays(1)
+                val recentEntries = foodRepository.getEntriesBetween(startDate, endDate)
+                
+                // Get ALL entries for total expense (all time)
                 val allEntries = foodRepository.getEntriesBetween(
-                    LocalDate.of(2024, 1, 1), // From beginning
+                    LocalDate.of(2024, 1, 1),
                     LocalDate.now()
                 )
                 val totalExpenseAllTime = allEntries.sumOf { it.dailyExpense }
                 
-                // ✅ Get total paid (all time)
+                // Get total paid
                 val totalPaid = paymentRepository.getTotalCompletedPayments()
                 
-                // ✅ Balance = Total Paid - Total Expense
+                // Balance = Total Paid - Total Expense
                 val balance = totalPaid - totalExpenseAllTime
                 
-                // ✅ Remaining Days = Balance / Daily Rate
+                // Remaining Days = Balance / Daily Rate
                 val remainingDays = if (dailyRate > 0) (balance / dailyRate).toInt() else 0
                 
                 _state.update {
                     it.copy(
-                        todayBreakfast = todayEntry?.breakfast ?: false,
-                        todayLunch = todayEntry?.lunch ?: false,
-                        todayDinner = todayEntry?.dinner ?: false,
-                        todayMeals = todayEntry?.mealCount ?: 0,
-                        todayExpense = todayEntry?.dailyExpense ?: 0.0,
+                        // Selected date data
+                        todayBreakfast = selectedEntry?.breakfast ?: false,
+                        todayLunch = selectedEntry?.lunch ?: false,
+                        todayDinner = selectedEntry?.dinner ?: false,
+                        todayMeals = selectedEntry?.mealCount ?: 0,
+                        todayExpense = selectedEntry?.dailyExpense ?: 0.0,
+                        // Monthly data
                         totalMeals = summary.totalMeals,
                         breakfastCount = summary.totalBreakfast,
                         lunchCount = summary.totalLunch,
@@ -147,20 +84,19 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
                         totalExpense = summary.totalExpense,
                         averageDailyExpense = summary.averageDailyExpense,
                         presentDays = summary.presentDays,
+                        // Balance data
                         balance = balance,
                         remainingDays = remainingDays,
                         dailyRate = dailyRate,
-                        recentEntries = recentEntries.reversed().take(7)
+                        // Recent entries
+                        recentEntries = recentEntries.sortedByDescending { it.date }.take(7)
                     )
                 }
             } catch (e: Exception) {
+                Log.e("DashboardVM", "Error loading dashboard: ${e.message}")
                 e.printStackTrace()
             }
         }
-    }
-    
-    fun refresh() {
-        loadDashboard()
     }
     
     companion object {
@@ -190,6 +126,6 @@ data class DashboardState(
     val presentDays: Int = 0,
     val balance: Double = 0.0,
     val remainingDays: Int = 0,
-    val dailyRate: Double = 150.0,
+    val dailyRate: Double = 160.0,
     val recentEntries: List<FoodEntry> = emptyList()
 )
