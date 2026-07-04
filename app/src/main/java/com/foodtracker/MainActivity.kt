@@ -26,17 +26,13 @@ class MainActivity : ComponentActivity() {
 fun FoodTrackerApp() {
     val context = LocalContext.current
     
-    // Read theme from SharedPreferences
     var isDarkTheme by remember {
         mutableStateOf(ThemeManager.isDarkTheme(context))
     }
     
-    // Listen for theme changes when recomposing
-    val currentTheme = ThemeManager.isDarkTheme(context)
-    
-    // Update state if theme changes externally
-    LaunchedEffect(currentTheme) {
-        isDarkTheme = currentTheme
+    // Re-read theme when activity recreates
+    LaunchedEffect(Unit) {
+        isDarkTheme = ThemeManager.isDarkTheme(context)
     }
     
     FoodTrackerTheme(darkTheme = isDarkTheme) {
