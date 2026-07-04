@@ -1,10 +1,13 @@
 package com.foodtracker.ui.navigation
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.foodtracker.ui.screens.calendar.CalendarScreen
 import com.foodtracker.ui.screens.dashboard.DashboardScreen
 import com.foodtracker.ui.screens.payments.PaymentScreen
@@ -21,29 +24,34 @@ sealed class Screen(val route: String) {
 
 @Composable
 fun NavGraph(
-    navController: NavHostController,
-    modifier: Modifier = Modifier,
+    navController: NavHostController = rememberNavController(),
     startDestination: String = Screen.Dashboard.route
 ) {
-    NavHost(
-        navController = navController,
-        startDestination = startDestination,
-        modifier = modifier
-    ) {
-        composable(Screen.Dashboard.route) {
-            DashboardScreen(navController)
+    Scaffold(
+        bottomBar = {
+            BottomNavigationBar(navController = navController)
         }
-        composable(Screen.Calendar.route) {
-            CalendarScreen(navController)
-        }
-        composable(Screen.Payments.route) {
-            PaymentScreen(navController)
-        }
-        composable(Screen.Reports.route) {
-            ReportsScreen(navController)
-        }
-        composable(Screen.Settings.route) {
-            SettingsScreen(navController)
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = startDestination,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable(Screen.Dashboard.route) {
+                DashboardScreen(navController)
+            }
+            composable(Screen.Calendar.route) {
+                CalendarScreen(navController)
+            }
+            composable(Screen.Payments.route) {
+                PaymentScreen(navController)
+            }
+            composable(Screen.Reports.route) {
+                ReportsScreen(navController)
+            }
+            composable(Screen.Settings.route) {
+                SettingsScreen(navController)
+            }
         }
     }
 }
