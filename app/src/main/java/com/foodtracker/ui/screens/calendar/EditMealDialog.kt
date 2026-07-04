@@ -1,5 +1,6 @@
 package com.foodtracker.ui.screens.calendar
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -33,16 +34,13 @@ fun EditMealDialog(
     val database = AppDatabase.getInstance(context)
     val repository = FoodRepository(database.foodEntryDao())
     
-    // Load entry for this date
     var entry by remember { mutableStateOf<FoodEntry?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     
-    // States for meal toggles
     var breakfast by remember { mutableStateOf(false) }
     var lunch by remember { mutableStateOf(false) }
     var dinner by remember { mutableStateOf(false) }
     
-    // Load existing entry
     LaunchedEffect(date) {
         withContext(Dispatchers.IO) {
             entry = repository.getEntry(date)
@@ -67,7 +65,6 @@ fun EditMealDialog(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Title
                 Text(
                     text = "📝 Edit Meals",
                     fontSize = 22.sp,
@@ -97,7 +94,6 @@ fun EditMealDialog(
                         color = MaterialTheme.colorScheme.primary
                     )
                 } else {
-                    // Meal Toggles
                     MealToggleRow(
                         label = "Breakfast",
                         isChecked = breakfast,
@@ -122,7 +118,6 @@ fun EditMealDialog(
                     
                     Spacer(modifier = Modifier.height(20.dp))
                     
-                    // Summary
                     val mealCount = NumberUtils.calculateMealCount(breakfast, lunch, dinner)
                     val dailyExpense = NumberUtils.calculateDailyExpense(breakfast, lunch, dinner)
                     
@@ -168,7 +163,6 @@ fun EditMealDialog(
                     
                     Spacer(modifier = Modifier.height(20.dp))
                     
-                    // Buttons
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
