@@ -27,11 +27,9 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun FoodTrackerApp() {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val viewModel: SettingsViewModel = viewModel(
-        factory = SettingsViewModel.provideFactory(context)
-    )
     
-    val isDarkTheme by viewModel.state.collectAsState().map { it.isDarkTheme }
+    // Simple theme state - will be expanded with Settings
+    var isDarkTheme by androidx.compose.runtime.mutableStateOf(false)
     
     FoodTrackerTheme(darkTheme = isDarkTheme) {
         Surface(
