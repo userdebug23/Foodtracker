@@ -63,7 +63,7 @@ fun SettingsScreen() {
                     checked = isDarkTheme,
                     onCheckedChange = { 
                         isDarkTheme = !isDarkTheme
-                        showToast("Theme changed")
+                        showToast(if (isDarkTheme) "Dark mode enabled" else "Light mode enabled")
                     }
                 )
             }
