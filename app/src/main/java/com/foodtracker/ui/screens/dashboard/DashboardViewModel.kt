@@ -1,5 +1,6 @@
 package com.foodtracker.ui.screens.dashboard
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foodtracker.data.database.AppDatabase
@@ -12,7 +13,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 
-class DashboardViewModel(private val context: android.content.Context) : ViewModel() {
+class DashboardViewModel(private val context: Context) : ViewModel() {
     
     private val _state = MutableStateFlow(DashboardState())
     val state: StateFlow<DashboardState> = _state.asStateFlow()
@@ -114,6 +115,17 @@ class DashboardViewModel(private val context: android.content.Context) : ViewMod
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+        }
+    }
+    
+    companion object {
+        fun provideFactory(context: Context): androidx.lifecycle.ViewModelProvider.Factory {
+            return object : androidx.lifecycle.ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return DashboardViewModel(context) as T
+                }
             }
         }
     }
