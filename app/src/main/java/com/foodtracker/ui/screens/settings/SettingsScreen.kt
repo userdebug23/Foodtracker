@@ -19,9 +19,8 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.launch
 
-// DataStore for settings
-private val Context.dataStore by preferencesDataStore(name = "food_settings")
-
+// DataStore extension
+private val android.content.Context.dataStore by preferencesDataStore(name = "food_settings")
 private val DAILY_AMOUNT_KEY = doublePreferencesKey("daily_amount")
 private val DARK_THEME_KEY = booleanPreferencesKey("dark_theme")
 
@@ -66,7 +65,8 @@ fun SettingsScreen() {
                 preferences[DARK_THEME_KEY] = newTheme
             }
             isDarkTheme = newTheme
-            // Also update the app theme
+            Toast.makeText(context, if (newTheme) "Dark mode enabled" else "Light mode enabled", Toast.LENGTH_SHORT).show()
+            // Recreate activity to apply theme
             (context as? androidx.activity.ComponentActivity)?.recreate()
         }
     }
@@ -98,7 +98,6 @@ fun SettingsScreen() {
         // Daily Amount Section
         item {
             SettingsSection(title = "💰 Daily Budget") {
-                // Daily Amount Card
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -139,7 +138,6 @@ fun SettingsScreen() {
                         
                         Spacer(modifier = Modifier.height(12.dp))
                         
-                        // Per Meal Breakdown
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
@@ -168,8 +166,7 @@ fun SettingsScreen() {
                 SettingsItem(
                     icon = "📊",
                     title = "Per Meal Rate",
-                    subtitle = "₹${String.format("%.2f", perMealRate)} per meal",
-                    onClick = null
+                    subtitle = "₹${String.format("%.2f", perMealRate)} per meal"
                 )
             }
         }
