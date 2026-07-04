@@ -7,13 +7,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.foodtracker.R
+import com.foodtracker.ui.navigation.Screen
 
 @Composable
 fun BottomNavigationBar(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    val items = listOf(
+    val screens = listOf(
         Screen.Dashboard to R.drawable.ic_dashboard,
         Screen.Calendar to R.drawable.ic_calendar,
         Screen.Payments to R.drawable.ic_payment,
@@ -25,28 +26,35 @@ fun BottomNavigationBar(
     val currentRoute = navBackStackEntry.value?.destination?.route
     
     NavigationBar(modifier = modifier) {
-        items.forEach { (screen, icon) ->
+        screens.forEach { (screen, iconRes) ->
             NavigationBarItem(
-                selected = currentRoute == screen.route,
-                onClick = {
-                    navController.navigate(screen.route) {
-                        // Pop up to the start destination to avoid multiple copies
-                        popUpTo(Screen.Dashboard.route) {
-                            saveState = true
-                        }
-                        // Avoid multiple copies of the same destination
-                        launchSingleTop = true
-                        // Restore state when reselecting a previously selected item
-                        restoreState = true
-                    }
-                },
                 icon = {
                     Icon(
-                        painter = painterResource(id = icon),
+                        painter = painterResource(id = iconRes),
                         contentDescription = screen.route
                     )
                 },
-                label = { Text(screen.route.replaceFirstChar { it.uppercase() }) }
+                label = {
+                    Text(
+                        text = when (screen) {
+                            Screen.Dashboard -> "Home"
+                            Screen.Calendar -> "Calendar"
+                            Screen.Payments -> "Payments"
+                            Screen.Reports -> "Reports"
+                            Screen.Settings -> "Settings"
+                        }
+                    )
+                },
+                selected = currentRoute == screen.route,
+                onClick = {
+                    navController.navigate(screen.route) {
+                        popUpTo(Screen.Dashboard.route) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
             )
         }
     }
