@@ -64,10 +64,11 @@ fun AddPaymentDialog(
                 
                 Spacer(modifier = Modifier.height(20.dp))
                 
-                // Amount Input
+                // Amount Input - SIMPLIFIED
                 OutlinedTextField(
                     value = amount,
                     onValueChange = { 
+                        // Allow only numbers and decimal point
                         if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) {
                             amount = it
                         }
@@ -75,7 +76,10 @@ fun AddPaymentDialog(
                     label = { Text("Amount (₹)") },
                     placeholder = { Text("Enter amount") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal
+                    )
                 )
                 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -119,7 +123,7 @@ fun AddPaymentDialog(
                 
                 Spacer(modifier = Modifier.height(12.dp))
                 
-                // Payment Method
+                // Payment Method Dropdown
                 var expanded by remember { mutableStateOf(false) }
                 
                 OutlinedTextField(
@@ -135,7 +139,11 @@ fun AddPaymentDialog(
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)
+                    )
                 )
                 
                 DropdownMenu(
@@ -191,14 +199,15 @@ fun AddPaymentDialog(
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 
-                // Summary
-                if (amount.isNotEmpty() && amount.toDoubleOrNull() != null) {
+                // Summary - Show amount preview
+                val amountValue = amount.toDoubleOrNull()
+                if (amountValue != null && amountValue > 0) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                         )
                     ) {
                         Row(
@@ -208,7 +217,7 @@ fun AddPaymentDialog(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "Total Payment",
+                                text = "💰 Payment Amount",
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                             )
@@ -253,7 +262,7 @@ fun AddPaymentDialog(
         }
     }
     
-    // Simple Date Picker Dialog
+    // Date Picker Dialog
     if (showDatePicker) {
         SimpleDatePickerDialog(
             onDismiss = { showDatePicker = false },
