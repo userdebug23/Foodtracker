@@ -111,30 +111,27 @@ class DashboardViewModel(private val context: Context) : ViewModel() {
             try {
                 val today = LocalDate.now()
                 val currentMonth = YearMonth.now()
+                val dailyRate = NumberUtils.getDailyRate(context)
                 
                 val todayEntry = foodRepository.getEntry(today)
                 val summary = foodRepository.getMonthlySummary(currentMonth)
                 val recentEntries = foodRepository.getEntriesBetween(today.minusDays(6), today)
                 
-                // ✅ Get total payments made (all time)
-                val totalPaid = paymentRepository.getTotalCompletedPayments()
-                
-                // ✅ Get total expense so far (all time - from all entries)
-                // For this, we need all entries, not just current month
+                // ✅ Get all entries (all time) for total expense
                 val allEntries = foodRepository.getEntriesBetween(
-                    LocalDate.of(2024, 1, 1), // Start from beginning
+                    LocalDate.of(2024, 1, 1), // From beginning
                     LocalDate.now()
                 )
                 val totalExpenseAllTime = allEntries.sumOf { it.dailyExpense }
                 
-                // ✅ Calculate balance = total paid - total expense
+                // ✅ Get total paid (all time)
+                val totalPaid = paymentRepository.getTotalCompletedPayments()
+                
+                // ✅ Balance = Total Paid - Total Expense
                 val balance = totalPaid - totalExpenseAllTime
                 
-                // ✅ Get daily rate
-                val dailyRate = NumberUtils.getDailyRate(context)
-                
-                // ✅ Calculate remaining days based on balance
-                val remainingDays = NumberUtils.calculateRemainingDays(balance, dailyRate)
+                // ✅ Remaining Days = Balance / Daily Rate
+                val remainingDays = if (dailyRate > 0) (balance / dailyRate).toInt() else 0
                 
                 _state.update {
                     it.copy(
@@ -193,6 +190,6 @@ data class DashboardState(
     val presentDays: Int = 0,
     val balance: Double = 0.0,
     val remainingDays: Int = 0,
-    val dailyRate: Double = 160.0,
+    val dailyRate: Double = 150.0,
     val recentEntries: List<FoodEntry> = emptyList()
 )
