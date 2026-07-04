@@ -1,5 +1,7 @@
 package com.foodtracker.ui.screens.settings
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,56 +17,28 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.datastore.preferences.core.*
-import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.launch
-
-private val Context.dataStore by preferencesDataStore(name = "food_settings")
-private val MEAL_RATE_KEY = doublePreferencesKey("meal_rate")
-private val DARK_THEME_KEY = booleanPreferencesKey("dark_theme")
+import androidx.core.content.edit
 
 @Composable
 fun SettingsScreen() {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+    val prefs = context.getSharedPreferences("food_tracker_settings", Context.MODE_PRIVATE)
     
-    var mealRate by remember { mutableStateOf(50.0) }
-    var isDarkTheme by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(true) }
+    var mealRate by remember { mutableStateOf(prefs.getFloat("meal_rate", 50f).toDouble()) }
+    var isDarkTheme by remember { mutableStateOf(prefs.getBoolean("dark_theme", false)) }
     var showDialog by remember { mutableStateOf(false) }
     
-    LaunchedEffect(Unit) {
-        try {
-            context.dataStore.data.collect { preferences ->
-                mealRate = preferences[MEAL_RATE_KEY] ?: 50.0
-                isDarkTheme = preferences[DARK_THEME_KEY] ?: false
-                isLoading = false
-            }
-        } catch (e: Exception) {
-            isLoading = false
-        }
-    }
-    
     fun saveMealRate(rate: Double) {
-        scope.launch {
-            context.dataStore.edit { preferences ->
-                preferences[MEAL_RATE_KEY] = rate
-            }
-            mealRate = rate
-            Toast.makeText(context, "Meal rate updated to ₹${String.format("%.2f", rate)}", Toast.LENGTH_SHORT).show()
-        }
+        prefs.edit { putFloat("meal_rate", rate.toFloat()) }
+        mealRate = rate
+        Toast.makeText(context, "Meal rate updated to ₹${String.format("%.2f", rate)}", Toast.LENGTH_SHORT).show()
     }
     
     fun toggleTheme() {
-        scope.launch {
-            val newTheme = !isDarkTheme
-            context.dataStore.edit { preferences ->
-                preferences[DARK_THEME_KEY] = newTheme
-            }
-            isDarkTheme = newTheme
-            Toast.makeText(context, if (newTheme) "Dark mode enabled" else "Light mode enabled", Toast.LENGTH_SHORT).show()
-            (context as? androidx.activity.ComponentActivity)?.recreate()
-        }
+        val newTheme = !isDarkTheme
+        prefs.edit { putBoolean("dark_theme", newTheme) }
+        isDarkTheme = newTheme
+        Toast.makeText(context, if (newTheme) "Dark mode enabled" else "Light mode enabled", Toast.LENGTH_SHORT).show()
     }
     
     val dailyRate = mealRate * 3
