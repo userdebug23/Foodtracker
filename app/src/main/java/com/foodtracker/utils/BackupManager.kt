@@ -70,14 +70,9 @@ class BackupManager(private val context: Context) {
     
     private fun createFoodSheet(workbook: XSSFWorkbook, entries: List<FoodEntry>) {
         val sheet = workbook.createSheet("Food Entries")
-        val headerStyle = workbook.createCellStyle()
-        headerStyle.fillForegroundColor = IndexedColors.GREY_25_PERCENT.index
-        headerStyle.fillPattern = FillPatternType.SOLID_FOREGROUND
-        val font = workbook.createFont()
-        font.bold = true
-        headerStyle.setFont(font)
+        val headerStyle = createHeaderStyle(workbook)
         
-        val headers = arrayOf("Date", "Day", "Breakfast", "Lunch", "Dinner", "Meals", "Expense", "Remarks")
+        val headers = arrayOf("Date", "Day", "Breakfast", "Lunch", "Dinner", "Meals", "Expense")
         val headerRow = sheet.createRow(0)
         headers.forEachIndexed { index, header ->
             val cell = headerRow.createCell(index)
@@ -94,22 +89,16 @@ class BackupManager(private val context: Context) {
             row.createCell(4).setCellValue(if (entry.dinner) "Yes" else "No")
             row.createCell(5).setCellValue(entry.mealCount.toDouble())
             row.createCell(6).setCellValue(entry.dailyExpense)
-            row.createCell(7).setCellValue(entry.remarks ?: "")
         }
         
-        for (i in 0..7) {
+        for (i in 0..6) {
             sheet.autoSizeColumn(i)
         }
     }
     
     private fun createPaymentSheet(workbook: XSSFWorkbook, payments: List<PaymentEntity>) {
         val sheet = workbook.createSheet("Payments")
-        val headerStyle = workbook.createCellStyle()
-        headerStyle.fillForegroundColor = IndexedColors.GREY_25_PERCENT.index
-        headerStyle.fillPattern = FillPatternType.SOLID_FOREGROUND
-        val font = workbook.createFont()
-        font.bold = true
-        headerStyle.setFont(font)
+        val headerStyle = createHeaderStyle(workbook)
         
         val headers = arrayOf("Date", "Amount", "Method", "Status", "Remarks")
         val headerRow = sheet.createRow(0)
@@ -139,12 +128,7 @@ class BackupManager(private val context: Context) {
         payments: List<PaymentEntity>
     ) {
         val sheet = workbook.createSheet("Summary")
-        val headerStyle = workbook.createCellStyle()
-        headerStyle.fillForegroundColor = IndexedColors.LIGHT_GREEN.index
-        headerStyle.fillPattern = FillPatternType.SOLID_FOREGROUND
-        val font = workbook.createFont()
-        font.bold = true
-        headerStyle.setFont(font)
+        val headerStyle = createHeaderStyle(workbook)
         
         val totalMeals = entries.sumOf { it.mealCount }
         val totalExpense = entries.sumOf { it.dailyExpense }
@@ -171,5 +155,15 @@ class BackupManager(private val context: Context) {
         
         sheet.autoSizeColumn(0)
         sheet.autoSizeColumn(1)
+    }
+    
+    private fun createHeaderStyle(workbook: XSSFWorkbook): CellStyle {
+        val style = workbook.createCellStyle()
+        style.fillForegroundColor = IndexedColors.GREY_25_PERCENT.index
+        style.fillPattern = FillPatternType.SOLID_FOREGROUND
+        val font = workbook.createFont()
+        font.bold = true
+        style.setFont(font)
+        return style
     }
 }
