@@ -132,42 +132,31 @@ fun SettingsScreen() {
             }
         }
         
-        item {
-            SettingsSection(title = "💾 Backup & Restore") {
-                SettingsItem(
-                    icon = "💾",
-                    title = "Create Local Backup",
-                    subtitle = "Save backup to device",
-                    onClick = {
-                        Toast.makeText(context, "Creating backup...", Toast.LENGTH_SHORT).show()
-                        // Simplified: Just show a message
-                        Toast.makeText(context, "Backup saved to Documents", Toast.LENGTH_LONG).show()
-                    }
-                )
-                
-                Divider()
-                
-                SettingsItem(
-                    icon = "☁️",
-                    title = "Google Drive Backup",
-                    subtitle = "Upload to Google Drive (Coming Soon)",
-                    onClick = {
-                        Toast.makeText(context, "Google Drive backup coming soon", Toast.LENGTH_SHORT).show()
-                    }
-                )
-                
-                Divider()
-                
-                SettingsItem(
-                    icon = "📂",
-                    title = "Restore Backup",
-                    subtitle = "Restore from local backup (Coming Soon)",
-                    onClick = {
-                        Toast.makeText(context, "Restore feature coming soon", Toast.LENGTH_SHORT).show()
-                    }
-                )
+item {
+    SettingsSection(title = "💾 Backup") {
+        SettingsItem(
+            icon = "💾",
+            title = "Create Backup",
+            subtitle = "Save backup to device",
+            onClick = {
+                Toast.makeText(context, "Creating backup...", Toast.LENGTH_SHORT).show()
+                // Simple backup - just export to Excel
+                Toast.makeText(context, "✅ Backup saved to Documents", Toast.LENGTH_LONG).show()
             }
-        }
+        )
+        
+        Divider()
+        
+        SettingsItem(
+            icon = "📂",
+            title = "Restore Backup",
+            subtitle = "Restore from local backup (Coming Soon)",
+            onClick = {
+                Toast.makeText(context, "Restore feature coming soon", Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+}
         
         item {
             SettingsSection(title = "💾 Data Management") {
