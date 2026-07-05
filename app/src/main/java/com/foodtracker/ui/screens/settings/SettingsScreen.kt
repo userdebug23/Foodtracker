@@ -138,41 +138,53 @@ fun SettingsScreen() {
             }
         }
         
-        item {
-            SettingsSection(title = "💾 Data Management") {
-                SettingsItem(
-                    icon = "📤",
-                    title = "Export Data",
-                    subtitle = "Export to Excel file",
-                    onClick = {
-                        Toast.makeText(context, "Export feature coming soon", Toast.LENGTH_SHORT).show()
-                    }
-                )
-                
-                Divider()
-                
-                SettingsItem(
-                    icon = "📥",
-                    title = "Import Data",
-                    subtitle = "Import from Excel file",
-                    onClick = {
-                        Toast.makeText(context, "Import feature coming soon", Toast.LENGTH_SHORT).show()
-                    }
-                )
-                
-                Divider()
-                
-                SettingsItem(
-                    icon = "🗑️",
-                    title = "Reset Database",
-                    subtitle = "Delete all data",
-                    onClick = {
-                        Toast.makeText(context, "Reset feature coming soon", Toast.LENGTH_SHORT).show()
-                    },
-                    isDanger = true
-                )
+       // In Data Management section, add these items:
+
+SettingsItem(
+    icon = "💾",
+    title = "Local Backup",
+    subtitle = "Save backup to device",
+    onClick = {
+        Toast.makeText(context, "Creating backup...", Toast.LENGTH_SHORT).show()
+        CoroutineScope(Dispatchers.IO).launch {
+            val backupManager = BackupManager(context)
+            val file = backupManager.createLocalBackup()
+            withContext(Dispatchers.Main) {
+                if (file != null) {
+                    Toast.makeText(
+                        context,
+                        "Backup saved: ${file.name}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    Toast.makeText(context, "Backup failed", Toast.LENGTH_SHORT).show()
+                }
             }
         }
+    }
+)
+
+Divider()
+
+SettingsItem(
+    icon = "☁️",
+    title = "Google Drive Backup",
+    subtitle = "Upload to Google Drive",
+    onClick = {
+        Toast.makeText(context, "Google Drive backup coming soon", Toast.LENGTH_SHORT).show()
+    }
+)
+
+Divider()
+
+SettingsItem(
+    icon = "📂",
+    title = "Restore Backup",
+    subtitle = "Restore from local backup",
+    onClick = {
+        Toast.makeText(context, "Restore feature coming soon", Toast.LENGTH_SHORT).show()
+    }
+)
         
         item {
             SettingsSection(title = "📱 About") {
