@@ -1,4 +1,4 @@
-package com.foodtracker.data.database.dao
+package com.foodtracker.data.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
