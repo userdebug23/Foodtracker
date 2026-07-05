@@ -36,4 +36,9 @@ interface FoodEntryDao {
     
     @Query("SELECT SUM(daily_expense) FROM food_entries WHERE date BETWEEN :startDate AND :endDate")
     suspend fun getTotalExpense(startDate: String, endDate: String): Double
+
+    @Query("SELECT * FROM food_entries ORDER BY date DESC")
+    suspend fun getAllEntries(): List<FoodEntry>
+    
 }
+
