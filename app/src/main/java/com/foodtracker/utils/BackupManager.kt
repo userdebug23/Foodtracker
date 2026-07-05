@@ -20,12 +20,10 @@ class BackupManager(private val context: Context) {
         private const val BACKUP_FOLDER = "FoodTrackerBackups"
     }
     
-    // 📥 Create Local Backup
     suspend fun createLocalBackup(): File? {
         return try {
             val database = AppDatabase.getInstance(context)
             
-            // Get all entries and payments
             val allEntries = database.foodEntryDao().getAllEntries()
             val allPayments = database.paymentDao().getAllPayments()
             
@@ -42,7 +40,7 @@ class BackupManager(private val context: Context) {
             // Summary Sheet
             createSummarySheet(workbook, allEntries, allPayments)
             
-            // Save file to Documents folder
+            // Save file
             val backupDir = getBackupDirectory()
             if (!backupDir.exists()) {
                 backupDir.mkdirs()
@@ -62,24 +60,23 @@ class BackupManager(private val context: Context) {
         }
     }
     
-    // 📂 Get backup directory
     private fun getBackupDirectory(): File {
-        // Try external documents directory first
         val documentsDir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
         if (documentsDir != null) {
             return File(documentsDir, BACKUP_FOLDER)
         }
-        
-        // Fallback to internal storage
         return File(context.filesDir, BACKUP_FOLDER)
     }
     
-    // 📋 Create Food Entries Sheet
     private fun createFoodSheet(workbook: XSSFWorkbook, entries: List<FoodEntry>) {
         val sheet = workbook.createSheet("Food Entries")
-        val headerStyle = createHeaderStyle(workbook)
+        val headerStyle = workbook.createCellStyle()
+        headerStyle.fillForegroundColor = IndexedColors.GREY_25_PERCENT.index
+        headerStyle.fillPattern = FillPatternType.SOLID_FOREGROUND
+        val font = workbook.createFont()
+        font.bold = true
+        headerStyle.setFont(font)
         
-        // Headers
         val headers = arrayOf("Date", "Day", "Breakfast", "Lunch", "Dinner", "Meals", "Expense", "Remarks")
         val headerRow = sheet.createRow(0)
         headers.forEachIndexed { index, header ->
@@ -88,7 +85,6 @@ class BackupManager(private val context: Context) {
             cell.cellStyle = headerStyle
         }
         
-        // Data rows
         entries.forEachIndexed { index, entry ->
             val row = sheet.createRow(index + 1)
             row.createCell(0).setCellValue(entry.date.toString())
@@ -106,10 +102,14 @@ class BackupManager(private val context: Context) {
         }
     }
     
-    // 📋 Create Payments Sheet
     private fun createPaymentSheet(workbook: XSSFWorkbook, payments: List<PaymentEntity>) {
         val sheet = workbook.createSheet("Payments")
-        val headerStyle = createHeaderStyle(workbook)
+        val headerStyle = workbook.createCellStyle()
+        headerStyle.fillForegroundColor = IndexedColors.GREY_25_PERCENT.index
+        headerStyle.fillPattern = FillPatternType.SOLID_FOREGROUND
+        val font = workbook.createFont()
+        font.bold = true
+        headerStyle.setFont(font)
         
         val headers = arrayOf("Date", "Amount", "Method", "Status", "Remarks")
         val headerRow = sheet.createRow(0)
@@ -133,14 +133,18 @@ class BackupManager(private val context: Context) {
         }
     }
     
-    // 📋 Create Summary Sheet
     private fun createSummarySheet(
         workbook: XSSFWorkbook,
         entries: List<FoodEntry>,
         payments: List<PaymentEntity>
     ) {
         val sheet = workbook.createSheet("Summary")
-        val headerStyle = createHeaderStyle(workbook)
+        val headerStyle = workbook.createCellStyle()
+        headerStyle.fillForegroundColor = IndexedColors.LIGHT_GREEN.index
+        headerStyle.fillPattern = FillPatternType.SOLID_FOREGROUND
+        val font = workbook.createFont()
+        font.bold = true
+        headerStyle.setFont(font)
         
         val totalMeals = entries.sumOf { it.mealCount }
         val totalExpense = entries.sumOf { it.dailyExpense }
@@ -167,16 +171,5 @@ class BackupManager(private val context: Context) {
         
         sheet.autoSizeColumn(0)
         sheet.autoSizeColumn(1)
-    }
-    
-    // 📋 Helper: Create Header Style
-    private fun createHeaderStyle(workbook: XSSFWorkbook): CellStyle {
-        return workbook.createCellStyle().apply {
-            fillForegroundColor = IndexedColors.GREY_25_PERCENT.index
-            fillPattern = FillPatternType.SOLID_FOREGROUND
-            val font = workbook.createFont()
-            font.bold = true
-            setFont(font)
-        }
     }
 }
