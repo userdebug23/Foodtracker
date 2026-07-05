@@ -149,7 +149,8 @@ item {
             subtitle = "Save backup to Documents folder",
             onClick = {
                 Toast.makeText(context, "Creating backup...", Toast.LENGTH_SHORT).show()
-                CoroutineScope(Dispatchers.IO).launch {
+                // Use GlobalScope to avoid lifecycle issues
+                kotlinx.coroutines.GlobalScope.launch {
                     try {
                         val backupManager = BackupManager(context)
                         val file = backupManager.createLocalBackup()
@@ -157,14 +158,14 @@ item {
                             if (file != null) {
                                 Toast.makeText(
                                     context,
-                                    "✅ Backup saved successfully!",
+                                    "✅ Backup saved: ${file.name}",
                                     Toast.LENGTH_LONG
                                 ).show()
                             } else {
                                 Toast.makeText(
                                     context,
-                                    "❌ Backup failed. Please try again.",
-                                    Toast.LENGTH_LONG
+                                    "❌ Backup failed",
+                                    Toast.LENGTH_SHORT
                                 ).show()
                             }
                         }
@@ -173,7 +174,7 @@ item {
                             Toast.makeText(
                                 context,
                                 "❌ Error: ${e.message}",
-                                Toast.LENGTH_LONG
+                                Toast.LENGTH_SHORT
                             ).show()
                         }
                     }
