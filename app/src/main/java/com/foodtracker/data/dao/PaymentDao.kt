@@ -40,4 +40,7 @@ interface PaymentDao {
     
     @Query("DELETE FROM payments WHERE id = :paymentId")
     suspend fun deletePayment(paymentId: Long)
+
+    @Query("SELECT * FROM payments ORDER BY payment_date DESC")
+    suspend fun getAllPayments(): List<PaymentEntity>
 }
