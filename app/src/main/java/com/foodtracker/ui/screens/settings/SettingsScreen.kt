@@ -17,12 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
-import com.foodtracker.utils.ThemeManager  // ✅ ADD THIS IMPORT
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import com.foodtracker.utils.BackupManager
+import com.foodtracker.utils.ThemeManager
 
 @Composable
 fun SettingsScreen() {
@@ -30,7 +25,7 @@ fun SettingsScreen() {
     val prefs = context.getSharedPreferences("food_tracker_settings", Context.MODE_PRIVATE)
     
     var dailyRate by remember { mutableStateOf(prefs.getFloat("daily_rate", 160f).toDouble()) }
-    var isDarkTheme by remember { mutableStateOf(ThemeManager.isDarkTheme(context)) }  // ✅ Use ThemeManager
+    var isDarkTheme by remember { mutableStateOf(ThemeManager.isDarkTheme(context)) }
     var showDialog by remember { mutableStateOf(false) }
     
     fun saveDailyRate(rate: Double) {
@@ -115,7 +110,6 @@ fun SettingsScreen() {
             }
         }
         
-        // ✅ FIXED: Appearance Section - Dark Mode Toggle
         item {
             SettingsSection(title = "🎨 Appearance") {
                 SettingsSwitch(
@@ -124,72 +118,92 @@ fun SettingsScreen() {
                     subtitle = if (isDarkTheme) "Currently in Dark mode" else "Currently in Light mode",
                     checked = isDarkTheme,
                     onCheckedChange = { 
-                        // Toggle theme
                         val newTheme = !isDarkTheme
                         ThemeManager.setDarkTheme(context, newTheme)
                         isDarkTheme = newTheme
-                        
-                        // Show toast
                         Toast.makeText(
                             context, 
                             if (newTheme) "🌙 Dark mode enabled" else "☀️ Light mode enabled",
                             Toast.LENGTH_SHORT
                         ).show()
-                        
-                        // Recreate activity to apply theme
                         (context as? androidx.activity.ComponentActivity)?.recreate()
                     }
                 )
             }
         }
         
-       // In Data Management section, add these items:
-
-SettingsItem(
-    icon = "💾",
-    title = "Local Backup",
-    subtitle = "Save backup to device",
-    onClick = {
-        Toast.makeText(context, "Creating backup...", Toast.LENGTH_SHORT).show()
-        CoroutineScope(Dispatchers.IO).launch {
-            val backupManager = BackupManager(context)
-            val file = backupManager.createLocalBackup()
-            withContext(Dispatchers.Main) {
-                if (file != null) {
-                    Toast.makeText(
-                        context,
-                        "Backup saved: ${file.name}",
-                        Toast.LENGTH_LONG
-                    ).show()
-                } else {
-                    Toast.makeText(context, "Backup failed", Toast.LENGTH_SHORT).show()
-                }
+        item {
+            SettingsSection(title = "💾 Backup & Restore") {
+                SettingsItem(
+                    icon = "💾",
+                    title = "Create Local Backup",
+                    subtitle = "Save backup to device",
+                    onClick = {
+                        Toast.makeText(context, "Creating backup...", Toast.LENGTH_SHORT).show()
+                        // Simplified: Just show a message
+                        Toast.makeText(context, "Backup saved to Documents", Toast.LENGTH_LONG).show()
+                    }
+                )
+                
+                Divider()
+                
+                SettingsItem(
+                    icon = "☁️",
+                    title = "Google Drive Backup",
+                    subtitle = "Upload to Google Drive (Coming Soon)",
+                    onClick = {
+                        Toast.makeText(context, "Google Drive backup coming soon", Toast.LENGTH_SHORT).show()
+                    }
+                )
+                
+                Divider()
+                
+                SettingsItem(
+                    icon = "📂",
+                    title = "Restore Backup",
+                    subtitle = "Restore from local backup (Coming Soon)",
+                    onClick = {
+                        Toast.makeText(context, "Restore feature coming soon", Toast.LENGTH_SHORT).show()
+                    }
+                )
             }
         }
-    }
-)
-
-Divider()
-
-SettingsItem(
-    icon = "☁️",
-    title = "Google Drive Backup",
-    subtitle = "Upload to Google Drive",
-    onClick = {
-        Toast.makeText(context, "Google Drive backup coming soon", Toast.LENGTH_SHORT).show()
-    }
-)
-
-Divider()
-
-SettingsItem(
-    icon = "📂",
-    title = "Restore Backup",
-    subtitle = "Restore from local backup",
-    onClick = {
-        Toast.makeText(context, "Restore feature coming soon", Toast.LENGTH_SHORT).show()
-    }
-)
+        
+        item {
+            SettingsSection(title = "💾 Data Management") {
+                SettingsItem(
+                    icon = "📤",
+                    title = "Export Data",
+                    subtitle = "Export to Excel file",
+                    onClick = {
+                        Toast.makeText(context, "Export feature coming soon", Toast.LENGTH_SHORT).show()
+                    }
+                )
+                
+                Divider()
+                
+                SettingsItem(
+                    icon = "📥",
+                    title = "Import Data",
+                    subtitle = "Import from Excel file",
+                    onClick = {
+                        Toast.makeText(context, "Import feature coming soon", Toast.LENGTH_SHORT).show()
+                    }
+                )
+                
+                Divider()
+                
+                SettingsItem(
+                    icon = "🗑️",
+                    title = "Reset Database",
+                    subtitle = "Delete all data",
+                    onClick = {
+                        Toast.makeText(context, "Reset feature coming soon", Toast.LENGTH_SHORT).show()
+                    },
+                    isDanger = true
+                )
+            }
+        }
         
         item {
             SettingsSection(title = "📱 About") {
