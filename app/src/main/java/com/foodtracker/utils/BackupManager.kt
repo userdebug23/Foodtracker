@@ -6,6 +6,8 @@ import android.util.Log
 import com.foodtracker.data.database.AppDatabase
 import com.foodtracker.data.entities.FoodEntry
 import com.foodtracker.data.entities.PaymentEntity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
 import java.io.FileOutputStream
@@ -20,57 +22,70 @@ class BackupManager(private val context: Context) {
     }
     
     suspend fun createLocalBackup(): File? {
-        return try {
-            val database = AppDatabase.getInstance(context)
-            
-            val allEntries = database.foodEntryDao().getAllEntries()
-            val allPayments = database.paymentDao().getAllPayments()
-            
-            val workbook = XSSFWorkbook()
-            val dateFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-            val timestamp = dateFormat.format(Date())
-            
-            // Food Entries Sheet
-            createFoodSheet(workbook, allEntries)
-            
-            // Payments Sheet
-            createPaymentSheet(workbook, allPayments)
-            
-            // Summary Sheet
-            createSummarySheet(workbook, allEntries, allPayments)
-            
-            // Save file
-            val backupDir = getBackupDirectory()
-            if (!backupDir.exists()) {
-                backupDir.mkdirs()
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.d(TAG, "Starting backup...")
+                
+                val database = AppDatabase.getInstance(context)
+                
+                // Get all data
+                val allEntries = database.foodEntryDao().getAllEntries()
+                val allPayments = database.paymentDao().getAllPayments()
+                
+                Log.d(TAG, "Entries: ${allEntries.size}, Payments: ${allPayments.size}")
+                
+                val workbook = XSSFWorkbook()
+                val dateFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+                val timestamp = dateFormat.format(Date())
+                
+                // Create sheets
+                createFoodSheet(workbook, allEntries)
+                createPaymentSheet(workbook, allPayments)
+                createSummarySheet(workbook, allEntries, allPayments)
+                
+                // Get backup directory
+                val backupDir = getBackupDirectory()
+                if (!backupDir.exists()) {
+                    backupDir.mkdirs()
+                }
+                
+                val fileName = "food_tracker_backup_$timestamp.xlsx"
+                val file = File(backupDir, fileName)
+                
+                // Write file
+                FileOutputStream(file).use { workbook.write(it) }
+                workbook.close()
+                
+                Log.d(TAG, "✅ Backup saved: ${file.absolutePath}")
+                file
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Error creating backup: ${e.message}")
+                e.printStackTrace()
+                null
             }
-            
-            val fileName = "food_tracker_backup_$timestamp.xlsx"
-            val file = File(backupDir, fileName)
-            FileOutputStream(file).use { workbook.write(it) }
-            workbook.close()
-            
-            Log.d(TAG, "✅ Backup saved: ${file.absolutePath}")
-            file
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Error creating backup: ${e.message}")
-            e.printStackTrace()
-            null
         }
     }
     
     private fun getBackupDirectory(): File {
+        // Try Documents folder first
         val documentsDir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
-        if (documentsDir != null) {
+        if (documentsDir != null && documentsDir.exists()) {
             return File(documentsDir, BACKUP_FOLDER)
         }
-        return File(context.filesDir, BACKUP_FOLDER)
+        
+        // Fallback to app's private storage
+        val filesDir = context.filesDir
+        if (filesDir != null && filesDir.exists()) {
+            return File(filesDir, BACKUP_FOLDER)
+        }
+        
+        // Final fallback - cache directory
+        return File(context.cacheDir, BACKUP_FOLDER)
     }
     
     private fun createFoodSheet(workbook: XSSFWorkbook, entries: List<FoodEntry>) {
         val sheet = workbook.createSheet("Food Entries")
         
-        // Simple header row without styling
         val headers = arrayOf("Date", "Day", "Breakfast", "Lunch", "Dinner", "Meals", "Expense")
         val headerRow = sheet.createRow(0)
         headers.forEachIndexed { index, header ->
