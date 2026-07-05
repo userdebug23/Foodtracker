@@ -6,7 +6,6 @@ import android.util.Log
 import com.foodtracker.data.database.AppDatabase
 import com.foodtracker.data.entities.FoodEntry
 import com.foodtracker.data.entities.PaymentEntity
-import org.apache.poi.ss.usermodel.*
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
 import java.io.FileOutputStream
@@ -70,14 +69,12 @@ class BackupManager(private val context: Context) {
     
     private fun createFoodSheet(workbook: XSSFWorkbook, entries: List<FoodEntry>) {
         val sheet = workbook.createSheet("Food Entries")
-        val headerStyle = createHeaderStyle(workbook)
         
+        // Simple header row without styling
         val headers = arrayOf("Date", "Day", "Breakfast", "Lunch", "Dinner", "Meals", "Expense")
         val headerRow = sheet.createRow(0)
         headers.forEachIndexed { index, header ->
-            val cell = headerRow.createCell(index)
-            cell.setCellValue(header)
-            cell.cellStyle = headerStyle
+            headerRow.createCell(index).setCellValue(header)
         }
         
         entries.forEachIndexed { index, entry ->
@@ -98,14 +95,11 @@ class BackupManager(private val context: Context) {
     
     private fun createPaymentSheet(workbook: XSSFWorkbook, payments: List<PaymentEntity>) {
         val sheet = workbook.createSheet("Payments")
-        val headerStyle = createHeaderStyle(workbook)
         
         val headers = arrayOf("Date", "Amount", "Method", "Status", "Remarks")
         val headerRow = sheet.createRow(0)
         headers.forEachIndexed { index, header ->
-            val cell = headerRow.createCell(index)
-            cell.setCellValue(header)
-            cell.cellStyle = headerStyle
+            headerRow.createCell(index).setCellValue(header)
         }
         
         payments.forEachIndexed { index, payment ->
@@ -128,7 +122,6 @@ class BackupManager(private val context: Context) {
         payments: List<PaymentEntity>
     ) {
         val sheet = workbook.createSheet("Summary")
-        val headerStyle = createHeaderStyle(workbook)
         
         val totalMeals = entries.sumOf { it.mealCount }
         val totalExpense = entries.sumOf { it.dailyExpense }
@@ -147,23 +140,11 @@ class BackupManager(private val context: Context) {
         
         data.forEachIndexed { index, (label, value) ->
             val row = sheet.createRow(index)
-            val labelCell = row.createCell(0)
-            labelCell.setCellValue(label)
-            labelCell.cellStyle = headerStyle
+            row.createCell(0).setCellValue(label)
             row.createCell(1).setCellValue(value)
         }
         
         sheet.autoSizeColumn(0)
         sheet.autoSizeColumn(1)
-    }
-    
-    private fun createHeaderStyle(workbook: XSSFWorkbook): CellStyle {
-        val style = workbook.createCellStyle()
-        style.fillForegroundColor = IndexedColors.GREY_25_PERCENT.index
-        style.fillPattern = FillPatternType.SOLID_FOREGROUND
-        val font = workbook.createFont()
-        font.bold = true
-        style.setFont(font)
-        return style
     }
 }
