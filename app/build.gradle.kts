@@ -55,6 +55,14 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3:1.1.2")
     implementation("androidx.compose.material:material-icons-extended")
+
+    // Google Drive API
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("com.google.api-client:google-api-client-android:2.2.0")
+    implementation("com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0")
+    
+    // For file operations
+    implementation("androidx.documentfile:documentfile:1.0.1")
     
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.5")
