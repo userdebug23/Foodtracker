@@ -19,9 +19,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import com.foodtracker.utils.BackupManager
 import com.foodtracker.utils.ThemeManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Composable
