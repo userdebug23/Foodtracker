@@ -149,12 +149,11 @@ item {
             subtitle = "Save backup to Documents folder",
             onClick = {
                 Toast.makeText(context, "Creating backup...", Toast.LENGTH_SHORT).show()
-                // Run backup in background
-                kotlinx.coroutines.GlobalScope.launch {
+                CoroutineScope(Dispatchers.IO).launch {
                     try {
                         val backupManager = BackupManager(context)
                         val file = backupManager.createLocalBackup()
-                        withContext(Dispatchers.Main) {
+                        kotlinx.coroutines.withContext(Dispatchers.Main) {
                             if (file != null) {
                                 Toast.makeText(
                                     context,
@@ -170,14 +169,12 @@ item {
                             }
                         }
                     } catch (e: Exception) {
-                        withContext(Dispatchers.Main) {
+                        kotlinx.coroutines.withContext(Dispatchers.Main) {
                             Toast.makeText(
                                 context,
                                 "❌ Error: ${e.message}",
                                 Toast.LENGTH_LONG
                             ).show()
-                            android.util.Log.e("Settings", "Backup error: ${e.message}")
-                            e.printStackTrace()
                         }
                     }
                 }
