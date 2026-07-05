@@ -18,7 +18,7 @@ import com.foodtracker.data.entities.PaymentEntity
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun foodEntryDao(): FoodEntryDao
-    abstract fun paymentDao(): PaymentDao  // ✅ ADD THIS LINE
+    abstract fun paymentDao(): PaymentDao
     
     companion object {
         @Volatile
