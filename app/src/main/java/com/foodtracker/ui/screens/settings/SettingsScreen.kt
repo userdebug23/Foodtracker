@@ -18,6 +18,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import com.foodtracker.utils.ThemeManager  // ✅ ADD THIS IMPORT
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.foodtracker.utils.BackupManager
 
 @Composable
 fun SettingsScreen() {
